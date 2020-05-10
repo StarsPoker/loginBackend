@@ -1,0 +1,35 @@
+package app
+
+import (
+	"github.com/StarsPoker/loginBackend/controllers/access_token"
+	"github.com/StarsPoker/loginBackend/controllers/users"
+	"github.com/gin-gonic/gin"
+)
+
+func mapUsersRoutes(api *gin.RouterGroup) {
+	usersGroup := api.Group("users")
+
+	usersGroup.GET("", users.UserController.GetUsers)
+	usersGroup.GET("/:user_id", users.UserController.GetUser)
+	usersGroup.POST("", users.UserController.CreateUser)
+	usersGroup.PUT("/:user_id", users.UserController.UpdateUser)
+	usersGroup.DELETE("/:user_id", users.UserController.DeleteUser)
+}
+
+func mapOauthRoutes(api *gin.RouterGroup) {
+	oauthGroup := api.Group("oauth")
+	oauthGroup.GET("/access_token/:access_token_id", access_token.GetById)
+	oauthGroup.POST("/access_token/", access_token.Create)
+	oauthGroup.PUT("/access_token/", access_token.UpdateExpirationTime)
+}
+
+func mapUrls() {
+	router.Use(CORSMiddleware())
+
+	api := router.Group("/api/")
+
+	api.OPTIONS("/*path", CORSMiddleware())
+
+	mapUsersRoutes(api)
+	mapOauthRoutes(api)
+}
