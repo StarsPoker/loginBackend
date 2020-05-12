@@ -5,21 +5,22 @@ import (
 	"strings"
 	"time"
 
+	"github.com/StarsPoker/loginBackend/utils/crypto_utils.go"
 	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
-	"gopkg.in/mgo.v2/bson"
 )
 
 const (
-	expirationTime = 24
+	expirationTime = 12
 )
 
 type AccessToken struct {
-	Id          bson.ObjectId `json:"id" bson:"_id" `
-	AccessToken string        `json:"access_token" bson:"access_token"`
-	UserId      int64         `json:"user_id" bson:"user_id"`
-	ClientId    int64         `json:"client_id" bson:"client_id"`
-	Expires     int64         `json:"expires" bson:"expires"`
+	AccessToken     string `json:"access_token" bson:"access_token"`
+	Role            int64  `json:"role" bson:"role"`
+	UserId          int64  `json:"user_id" bson:"user_id"`
+	ClientId        int64  `json:"client_id" bson:"client_id"`
+	Expires         int64  `json:"expires" bson:"expires"`
+	LastInteraction int64  `json:"last_interaction" bson:"last_interaction"`
 }
 
 func (at *AccessToken) Validate() *rest_errors.RestErr {
@@ -42,18 +43,22 @@ func (at *AccessToken) Validate() *rest_errors.RestErr {
 	return nil
 }
 
-func GetNewAccessToken() AccessToken {
+func GetNewAccessToken(userId int64, role int64) AccessToken {
 	return AccessToken{
-		AccessToken: "brasil",
-		UserId:      1,
-		ClientId:    2,
-		Expires:     date_utils.GetNow().Add(expirationTime * time.Hour).Unix(),
+		Role:            role,
+		UserId:          userId,
+		Expires:         date_utils.GetNow().Add(expirationTime * time.Hour).Unix(),
+		LastInteraction: date_utils.GetNow().Unix(),
 	}
 }
 
 func (at AccessToken) IsExpired() bool {
 	now := date_utils.GetNow()
 	expirationTime := time.Unix(at.Expires, 0)
-	fmt.Println(expirationTime)
+
 	return expirationTime.Before(now)
+}
+
+func (at *AccessToken) Generate() {
+	at.AccessToken = crypto_utils.GetMd5(fmt.Sprintf("at-%d-%d-ran", at.UserId, at.Expires))
 }

@@ -2,6 +2,7 @@ package access_token
 
 import (
 	"github.com/StarsPoker/loginBackend/logger"
+	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/mongo_utils"
 
 	"github.com/StarsPoker/loginBackend/datasources/mongo/stars_mongo"
@@ -48,21 +49,34 @@ func Create(accessToken AccessToken) *rest_errors.RestErr {
 	return nil
 }
 
-func UpdateExpirationTime(accessToken *AccessToken) (*AccessToken, *rest_errors.RestErr) {
+func Delete(accessTokenId string) *rest_errors.RestErr {
+	session, _ := stars_mongo.GetSession()
+	defer session.Close()
+
+	col := session.DB(database).C(collection)
+	err := col.Remove(bson.M{"access_token": accessTokenId})
+
+	if err != nil {
+		logger.Error("error when trying to delete a access_token", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func UpdateLastInteraction(accessTokenId string) *rest_errors.RestErr {
 
 	session, _ := stars_mongo.GetSession()
 	defer session.Close()
 
 	col := session.DB(database).C(collection)
 
-	err := col.UpdateId(accessToken.Id, bson.M{"$set": bson.M{
-		"expires": accessToken.Expires,
-	}})
+	err := col.Update(bson.M{"access_token": accessTokenId}, bson.M{"$set": bson.M{"last_interaction": date_utils.GetNow().Unix()}})
 
 	if err != nil {
-		logger.Error("error when trying to update a access token", err)
-		return nil, mongo_utils.ParseError(err)
+		logger.Error("error when trying to update last interaction access token", err)
+		return mongo_utils.ParseError(err)
 	}
 
-	return accessToken, nil
+	return nil
 }

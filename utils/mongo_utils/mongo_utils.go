@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	errorNoRows = "no documents in result"
+	errorNoRows   = "no documents in result"
+	errorNotFound = "not found"
 )
 
 func ParseError(err error) *rest_errors.RestErr {

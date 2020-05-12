@@ -18,13 +18,14 @@ func mapUsersRoutes(api *gin.RouterGroup) {
 
 func mapOauthRoutes(api *gin.RouterGroup) {
 	oauthGroup := api.Group("oauth")
-	oauthGroup.GET("/access_token/:access_token_id", access_token.GetById)
-	oauthGroup.POST("/access_token/", access_token.Create)
-	oauthGroup.PUT("/access_token/", access_token.UpdateExpirationTime)
+	oauthGroup.GET("/access_token/:access_token_id", access_token.AccessTokenController.GetById)
+	oauthGroup.POST("/access_token", access_token.AccessTokenController.Create)
+	oauthGroup.DELETE("/access_token/:access_token_id", access_token.AccessTokenController.Delete)
 }
 
 func mapUrls() {
 	router.Use(CORSMiddleware())
+	router.Use(OAuthMiddleware())
 
 	api := router.Group("/api/")
 

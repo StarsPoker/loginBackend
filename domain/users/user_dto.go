@@ -6,6 +6,10 @@ import (
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
 )
 
+const (
+	StatusActive = 1
+)
+
 type Users []User
 
 type User struct {
@@ -16,12 +20,6 @@ type User struct {
 	Role        int64  `json:"role"`
 	Status      int64  `json:"status"`
 	DateCreated string `json:"date_created"`
-}
-
-type UsersResponse struct {
-	Page         int64         `json:"page"`
-	ItemsPerPage int64         `json:"items_per_page"`
-	Users        []interface{} `json:"data"`
 }
 
 func (user *User) Validate() *rest_errors.RestErr {
