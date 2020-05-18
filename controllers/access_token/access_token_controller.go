@@ -1,6 +1,7 @@
 package access_token
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
@@ -46,7 +47,7 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		c.JSON(err.Status, err)
 		return
 	}
-
+	fmt.Println("Created")
 	c.JSON(http.StatusOK, at)
 }
 
