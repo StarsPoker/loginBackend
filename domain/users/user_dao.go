@@ -15,7 +15,8 @@ import (
 const (
 	errorNoRows                 = "no rows in result set"
 	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') FROM users WHERE id = ?"
-	queryGetUsers               = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created FROM users WHERE 1 = 1"
+	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users"
+	queryGetUsers               = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created FROM users WHERE 1 = 1 LIMIT ?, ?"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO USERS (name, email, password, role, status, date_created) VALUES (?, ?, ?, ?, ?, ?)"
 	queryUpdateUser             = "UPDATE USERS SET email = ?, status = ?, role = ? WHERE id = ?"
@@ -48,34 +49,52 @@ func (user *User) FindByEmailAndPassword() *rest_errors.RestErr {
 	return nil
 }
 
-func (user *User) GetUsers() ([]User, *rest_errors.RestErr) {
+func (user *User) GetUsers(page int, itemsPerPage int) ([]User, *int, *rest_errors.RestErr) {
+
 	stmt, err := stars_mysql.Client.Prepare(queryGetUsers)
+
+	initialResult := (page - 1) * itemsPerPage
 
 	if err != nil {
 		logger.Error("error when trying to prepare get users statement", err)
-		return nil, rest_errors.NewInternalServerError("database error")
+		return nil, nil, rest_errors.NewInternalServerError("database error")
 	}
 	defer stmt.Close()
 
-	rows, getErr := stmt.Query()
+	rows, getErr := stmt.Query(initialResult, itemsPerPage)
+	defer rows.Close()
+
+	stmtTotalRows, err := stars_mysql.Client.Prepare(queryTotalUsers)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get total users rows statement", err)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmtTotalRows.Close()
+
+	totalRows := stmtTotalRows.QueryRow()
+	var total int
+
+	if errTotalRows := totalRows.Scan(&total); errTotalRows != nil {
+		logger.Error("error when trying to get total users", errTotalRows)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
 
 	if getErr != nil {
 		logger.Error("error when trying to get users", getErr)
-		return nil, rest_errors.NewInternalServerError("database error")
+		return nil, nil, rest_errors.NewInternalServerError("database error")
 	}
-
-	defer rows.Close()
 
 	results := make([]User, 0)
 	for rows.Next() {
 		var user User
 		if err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated); err != nil {
-			return nil, mysql_utils.ParseError(err)
+			return nil, nil, mysql_utils.ParseError(err)
 		}
 		results = append(results, user)
 	}
 
-	return results, nil
+	return results, &total, nil
 }
 
 func (user *User) GetUser() *rest_errors.RestErr {
