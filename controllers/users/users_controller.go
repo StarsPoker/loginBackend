@@ -112,7 +112,20 @@ func (cont *userController) GetUser(c *gin.Context) {
 
 func (cont *userController) GetUsers(c *gin.Context) {
 
-	result, getErr := services.UsersService.GetUsers()
+	pageParam := c.Query("page")
+	itemsPerPageParam := c.Query("itemsPerPage")
+	page := 1
+	itemsPerPage := 10
+
+	if pageParam != "" {
+		page, _ = strconv.Atoi(pageParam)
+	}
+
+	if itemsPerPageParam != "" {
+		itemsPerPage, _ = strconv.Atoi(itemsPerPageParam)
+	}
+
+	result, total, getErr := services.UsersService.GetUsers(page, itemsPerPage)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 		return
@@ -122,8 +135,7 @@ func (cont *userController) GetUsers(c *gin.Context) {
 
 	var usersResponse users.UsersResponse
 
-	usersResponse.Page = 1
-	usersResponse.ItemsPerPage = 10
+	usersResponse.Total = *total
 	usersResponse.Users = users_result
 
 	c.JSON(http.StatusOK, usersResponse)
