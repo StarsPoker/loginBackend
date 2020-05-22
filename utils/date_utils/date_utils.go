@@ -8,7 +8,11 @@ const (
 )
 
 func GetNow() time.Time {
-	now := time.Now().UTC()
+	loc, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		panic(err)
+	}
+	now := time.Now().In(loc)
 	return now
 }
 
