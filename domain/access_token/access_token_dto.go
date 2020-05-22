@@ -21,6 +21,7 @@ type AccessToken struct {
 	ClientId        int64  `json:"client_id" bson:"client_id"`
 	Expires         int64  `json:"expires" bson:"expires"`
 	LastInteraction int64  `json:"last_interaction" bson:"last_interaction"`
+	Status          int64  `json:"status" bson:"status"`
 }
 
 func (at *AccessToken) Validate() *rest_errors.RestErr {
@@ -49,6 +50,7 @@ func GetNewAccessToken(userId int64, role int64) AccessToken {
 		UserId:          userId,
 		Expires:         date_utils.GetNow().Add(expirationTime * time.Hour).Unix(),
 		LastInteraction: date_utils.GetNow().Unix(),
+		Status:          1,
 	}
 }
 
