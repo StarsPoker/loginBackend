@@ -17,7 +17,7 @@ const (
 	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') FROM users WHERE id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users"
 	queryGetUsers               = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created FROM users WHERE 1 = 1 LIMIT ?, ?"
-	queryGetAttendances         = "SELECT id, name,  role, status FROM users WHERE 1 = 1 AND role = 0"
+	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1 AND role = 0"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created) VALUES (?, ?, ?, ?, ?, ?)"
 	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ? WHERE id = ?"
@@ -98,9 +98,9 @@ func (user *User) GetUsers(page int, itemsPerPage int) ([]User, *int, *rest_erro
 	return results, &total, nil
 }
 
-func (user *User) GetAttendances(search string) ([]User, *rest_errors.RestErr) {
+func (user *User) GetAttendants(search string) ([]User, *rest_errors.RestErr) {
 
-	query := queryGetAttendances + " AND name LIKE '%" + search + "%'"
+	query := queryGetAttendants + " AND name LIKE '%" + search + "%'"
 
 	stmt, err := stars_mysql.Client.Prepare(query)
 
