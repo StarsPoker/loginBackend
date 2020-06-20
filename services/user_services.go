@@ -20,7 +20,7 @@ type usersServiceInterface interface {
 	CreateUser(users.User) (*users.User, *rest_errors.RestErr)
 	UpdateUser(users.User) (*users.User, *rest_errors.RestErr)
 	DeleteUser(user users.User) *rest_errors.RestErr
-	GetAttendances(search string) (users.Users, *rest_errors.RestErr)
+	GetAttendants(search string) (users.Users, *rest_errors.RestErr)
 }
 
 func (s *usersService) GetUser(userId int64) (*users.User, *rest_errors.RestErr) {
@@ -42,9 +42,9 @@ func (s *usersService) GetUsers(page int, itemsPerPage int) (users.Users, *int, 
 	return users, total, nil
 }
 
-func (s *usersService) GetAttendances(search string) (users.Users, *rest_errors.RestErr) {
+func (s *usersService) GetAttendants(search string) (users.Users, *rest_errors.RestErr) {
 	dao := &users.User{}
-	users, err := dao.GetAttendances(search)
+	users, err := dao.GetAttendants(search)
 	if err != nil {
 		return nil, err
 	}
