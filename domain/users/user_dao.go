@@ -17,6 +17,7 @@ const (
 	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') FROM users WHERE id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users"
 	queryGetUsers               = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created FROM users WHERE 1 = 1 LIMIT ?, ?"
+	queryGetAttendances         = "SELECT id, name,  role, status FROM users WHERE 1 = 1 AND role = 0"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created) VALUES (?, ?, ?, ?, ?, ?)"
 	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ? WHERE id = ?"
@@ -95,6 +96,38 @@ func (user *User) GetUsers(page int, itemsPerPage int) ([]User, *int, *rest_erro
 	}
 
 	return results, &total, nil
+}
+
+func (user *User) GetAttendances(search string) ([]User, *rest_errors.RestErr) {
+
+	query := queryGetAttendances + " AND name LIKE '%" + search + "%'"
+
+	stmt, err := stars_mysql.Client.Prepare(query)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get attendances statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query()
+	defer rows.Close()
+
+	if getErr != nil {
+		logger.Error("error when trying to get attendances", getErr)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	results := make([]User, 0)
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.Id, &user.Name, &user.Role, &user.Status); err != nil {
+			return nil, mysql_utils.ParseError(err)
+		}
+		results = append(results, user)
+	}
+
+	return results, nil
 }
 
 func (user *User) GetUser() *rest_errors.RestErr {
