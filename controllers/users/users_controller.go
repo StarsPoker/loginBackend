@@ -21,6 +21,7 @@ type UserControllerInterface interface {
 	DeleteUser(c *gin.Context)
 	GetUser(c *gin.Context)
 	GetUsers(c *gin.Context)
+	GetAttendances(c *gin.Context)
 }
 
 type userController struct {
@@ -139,4 +140,15 @@ func (cont *userController) GetUsers(c *gin.Context) {
 	usersResponse.Users = users_result
 
 	c.JSON(http.StatusOK, usersResponse)
+}
+
+func (cont *userController) GetAttendances(c *gin.Context) {
+	search := c.Param("search")
+
+	userList, getErr := services.UsersService.GetAttendances(search)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+	c.JSON(http.StatusOK, userList)
 }
