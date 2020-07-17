@@ -22,6 +22,7 @@ type UserControllerInterface interface {
 	GetUser(c *gin.Context)
 	GetUsers(c *gin.Context)
 	GetAttendants(c *gin.Context)
+	ChangePassword(c *gin.Context)
 }
 
 type userController struct {
@@ -74,6 +75,32 @@ func (cont *userController) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
+}
+
+func (cont *userController) ChangePassword(c *gin.Context) {
+	userId, idErr := UserController.getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	var user users.ChangePassword
+	if err := c.ShouldBindJSON(&user); err != nil {
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	user.Id = userId
+
+	errChange := services.UsersService.ChangePassword(user)
+
+	if errChange != nil {
+		c.JSON(errChange.Status, errChange)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{"status": "changed"})
 }
 
 func (cont *userController) DeleteUser(c *gin.Context) {
