@@ -22,6 +22,13 @@ type User struct {
 	DateCreated string `json:"date_created"`
 }
 
+type ChangePassword struct {
+	Id                   int64  `json:"user_id"`
+	CurrentPassoword     string `json:"current_password"`
+	NewPassword          string `json:"new_password"`
+	ConfirmationPassword string `json:"confirmation_password"`
+}
+
 func (user *User) Validate() *rest_errors.RestErr {
 	user.Email = strings.TrimSpace(strings.ToLower(user.Email))
 	if user.Email == "" {

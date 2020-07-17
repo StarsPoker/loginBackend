@@ -17,6 +17,7 @@ type usersService struct {
 type usersServiceInterface interface {
 	GetUser(int64) (*users.User, *rest_errors.RestErr)
 	GetUsers(int, int) (users.Users, *int, *rest_errors.RestErr)
+	ChangePassword(users.ChangePassword) *rest_errors.RestErr
 	CreateUser(users.User) (*users.User, *rest_errors.RestErr)
 	UpdateUser(users.User) (*users.User, *rest_errors.RestErr)
 	DeleteUser(user users.User) *rest_errors.RestErr
@@ -81,6 +82,33 @@ func (s *usersService) UpdateUser(user users.User) (*users.User, *rest_errors.Re
 	}
 
 	return current, nil
+}
+
+func (s *usersService) ChangePassword(user users.ChangePassword) *rest_errors.RestErr {
+	current, err := UsersService.GetUser(user.Id)
+	if err != nil {
+		return rest_errors.NewBadRequestError("Usuário não encontrado")
+	}
+
+	if user.CurrentPassoword != user.CurrentPassoword {
+		return rest_errors.NewBadRequestError("Senha atual inválida")
+	}
+
+	if user.ConfirmationPassword != user.NewPassword {
+		return rest_errors.NewBadRequestError("Senha/senha de confirmação devem ser iguais")
+	}
+
+	if len(user.NewPassword) < 8 {
+		return rest_errors.NewBadRequestError("A senha deve possuir no minimo 8 caracteres")
+	}
+
+	current.Password = crypto_utils.GetMd5(user.NewPassword)
+
+	if err := current.ChangePassword(); err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 func (s *usersService) DeleteUser(user users.User) *rest_errors.RestErr {

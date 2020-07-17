@@ -13,6 +13,7 @@ func mapUsersRoutes(api *gin.RouterGroup) {
 	usersGroup.GET("/attendants/:search", users.UserController.GetAttendants)
 	usersGroup.GET("/user/:user_id", users.UserController.GetUser)
 	usersGroup.POST("", users.UserController.CreateUser)
+	usersGroup.POST("/change_password/:user_id", users.UserController.ChangePassword)
 	usersGroup.PUT("/:user_id", users.UserController.UpdateUser)
 	usersGroup.DELETE("/:user_id", users.UserController.DeleteUser)
 }

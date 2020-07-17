@@ -21,6 +21,7 @@ const (
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created) VALUES (?, ?, ?, ?, ?, ?)"
 	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ? WHERE id = ?"
+	queryChangePassword         = "UPDATE users SET password = ? WHERE id = ?"
 	queryDeleteUser             = "DELETE FROM users WHERE id = ?"
 )
 
@@ -195,6 +196,27 @@ func (user *User) Update() *rest_errors.RestErr {
 
 	if updateErr != nil {
 		logger.Error("error when trying to update user", updateErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (user *User) ChangePassword() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryChangePassword)
+
+	if err != nil {
+		logger.Error("error when trying to prepare change password user statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(user.Password, user.Id)
+
+	if updateErr != nil {
+		logger.Error("error when trying to change password user", updateErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
 
