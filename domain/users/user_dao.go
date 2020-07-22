@@ -14,13 +14,13 @@ import (
 
 const (
 	errorNoRows                 = "no rows in result set"
-	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') FROM users WHERE id = ?"
+	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), instance_id FROM users WHERE id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users"
-	queryGetUsers               = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created FROM users WHERE 1 = 1 LIMIT ?, ?"
+	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1 LIMIT ?, ?"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
-	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created) VALUES (?, ?, ?, ?, ?, ?)"
-	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ? WHERE id = ?"
+	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created, instance_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ?, instance_id = ? WHERE id = ?"
 	queryChangePassword         = "UPDATE users SET password = ? WHERE id = ?"
 	queryDeleteUser             = "DELETE FROM users WHERE id = ?"
 )
@@ -90,9 +90,11 @@ func (user *User) GetUsers(page int, itemsPerPage int) ([]User, *int, *rest_erro
 	results := make([]User, 0)
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated); err != nil {
+		if err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
+			&user.InstanceId, &user.InstanceName); err != nil {
 			return nil, nil, mysql_utils.ParseError(err)
 		}
+
 		results = append(results, user)
 	}
 
@@ -142,7 +144,8 @@ func (user *User) GetUser() *rest_errors.RestErr {
 
 	result := stmt.QueryRow(user.Id)
 
-	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated); getErr != nil {
+	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
+		&user.InstanceId); getErr != nil {
 		logger.Error("error when trying to get user", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
@@ -162,7 +165,7 @@ func (user *User) Save() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	insertResult, saveErr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Status, user.DateCreated)
+	insertResult, saveErr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Status, user.DateCreated, *user.InstanceId)
 
 	if saveErr != nil {
 		logger.Error("error when trying to save user", saveErr)
@@ -192,7 +195,7 @@ func (user *User) Update() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	_, updateErr := stmt.Exec(user.Email, user.Status, user.Role, user.Id)
+	_, updateErr := stmt.Exec(user.Email, user.Status, user.Role, user.InstanceId, user.Id)
 
 	if updateErr != nil {
 		logger.Error("error when trying to update user", updateErr)
