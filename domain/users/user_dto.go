@@ -13,13 +13,15 @@ const (
 type Users []User
 
 type User struct {
-	Id          int64  `json:"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Role        int64  `json:"role"`
-	Status      int64  `json:"status"`
-	DateCreated string `json:"date_created"`
+	Id           int64   `json:"id"`
+	Name         string  `json:"name"`
+	Email        string  `json:"email"`
+	Password     string  `json:"password"`
+	Role         int64   `json:"role"`
+	Status       int64   `json:"status"`
+	InstanceId   *string `json:"instance_id"`
+	InstanceName *string `json:"instance_name"`
+	DateCreated  string  `json:"date_created"`
 }
 
 type ChangePassword struct {
