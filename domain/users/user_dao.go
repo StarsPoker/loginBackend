@@ -165,7 +165,7 @@ func (user *User) Save() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	insertResult, saveErr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Status, user.DateCreated, *user.InstanceId)
+	insertResult, saveErr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Status, user.DateCreated, user.InstanceId)
 
 	if saveErr != nil {
 		logger.Error("error when trying to save user", saveErr)
