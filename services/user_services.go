@@ -16,7 +16,7 @@ type usersService struct {
 
 type usersServiceInterface interface {
 	GetUser(int64) (*users.User, *rest_errors.RestErr)
-	GetUsers(int, int) (users.Users, *int, *rest_errors.RestErr)
+	GetUsers(int, int, *users.Filter) (users.Users, *int, *rest_errors.RestErr)
 	ChangePassword(users.ChangePassword) *rest_errors.RestErr
 	CreateUser(users.User) (*users.User, *rest_errors.RestErr)
 	UpdateUser(users.User) (*users.User, *rest_errors.RestErr)
@@ -33,9 +33,9 @@ func (s *usersService) GetUser(userId int64) (*users.User, *rest_errors.RestErr)
 	return result, nil
 }
 
-func (s *usersService) GetUsers(page int, itemsPerPage int) (users.Users, *int, *rest_errors.RestErr) {
+func (s *usersService) GetUsers(page int, itemsPerPage int, filter *users.Filter) (users.Users, *int, *rest_errors.RestErr) {
 	dao := &users.User{}
-	users, total, err := dao.GetUsers(page, itemsPerPage)
+	users, total, err := dao.GetUsers(page, itemsPerPage, filter)
 	if err != nil {
 		return nil, nil, err
 	}

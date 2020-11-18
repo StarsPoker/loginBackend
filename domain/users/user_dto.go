@@ -24,6 +24,16 @@ type User struct {
 	DateCreated  string  `json:"date_created"`
 }
 
+type Filter struct {
+	Role     string `json:"role"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Club     string `json:"id_instance"`
+	Status   string `json:"status"`
+	SortBy   string `json:"sort_by"`
+	SortDesc string `json:"sort_desc"`
+}
+
 type ChangePassword struct {
 	Id                   int64  `json:"user_id"`
 	CurrentPassoword     string `json:"current_password"`

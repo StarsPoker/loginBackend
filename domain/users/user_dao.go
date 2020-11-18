@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/logger"
@@ -15,8 +16,8 @@ import (
 const (
 	errorNoRows                 = "no rows in result set"
 	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), instance_id FROM users WHERE id = ?"
-	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users"
-	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1 LIMIT ?, ?"
+	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
+	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created, instance_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -28,6 +29,47 @@ const (
 var (
 	usersDB = make(map[int64]*User)
 )
+
+func buildQuery(query *string, queryTotal *string, filter *Filter) {
+
+	concatQuery := ""
+	fmt.Println(filter.Role)
+
+	if filter.Role != "" {
+		concatQuery = concatQuery + " AND u.role = " + filter.Role
+	}
+
+	if filter.Name != "" {
+		concatQuery = concatQuery + " AND u.name LIKE '" + filter.Name + "%'"
+	}
+
+	if filter.Email != "" {
+		concatQuery = concatQuery + " AND u.email LIKE '" + filter.Email + "%'"
+	}
+
+	if filter.Club != "" {
+		concatQuery = concatQuery + " AND u.instance_id = " + filter.Club
+	}
+
+	if filter.Status != "" {
+		concatQuery = concatQuery + " AND u.status = " + filter.Status
+	}
+
+	if concatQuery != "" {
+		*query = *query + concatQuery
+		*queryTotal = *queryTotal + concatQuery
+	}
+
+	if filter.SortBy != "" {
+		*query = *query + " ORDER BY u." + filter.SortBy
+		if filter.SortDesc == "true" {
+			*query = *query + " desc"
+		}
+	} else {
+		*query = *query + " ORDER BY u.status, u.instance_id"
+	}
+	*query = *query + " LIMIT ?, ?"
+}
 
 func (user *User) FindByEmailAndPassword() *rest_errors.RestErr {
 	stmt, err := stars_mysql.Client.Prepare(queryFindByEmailAndPassword)
@@ -51,9 +93,13 @@ func (user *User) FindByEmailAndPassword() *rest_errors.RestErr {
 	return nil
 }
 
-func (user *User) GetUsers(page int, itemsPerPage int) ([]User, *int, *rest_errors.RestErr) {
+func (user *User) GetUsers(page int, itemsPerPage int, filter *Filter) ([]User, *int, *rest_errors.RestErr) {
 
-	stmt, err := stars_mysql.Client.Prepare(queryGetUsers)
+	query := queryGetUsers
+	queryTotal := queryTotalUsers
+	buildQuery(&query, &queryTotal, filter)
+
+	stmt, err := stars_mysql.Client.Prepare(query)
 
 	initialResult := (page - 1) * itemsPerPage
 
@@ -66,7 +112,7 @@ func (user *User) GetUsers(page int, itemsPerPage int) ([]User, *int, *rest_erro
 	rows, getErr := stmt.Query(initialResult, itemsPerPage)
 	defer rows.Close()
 
-	stmtTotalRows, err := stars_mysql.Client.Prepare(queryTotalUsers)
+	stmtTotalRows, err := stars_mysql.Client.Prepare(queryTotal)
 
 	if err != nil {
 		logger.Error("error when trying to prepare get total users rows statement", err)
