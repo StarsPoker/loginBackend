@@ -25,8 +25,8 @@ func StartApplication() {
 	mapUrls()
 
 	if stars_env == "production" {
-		router.RunTLS(":8080", stars_pem, stars_key)
+		router.RunTLS(":8079", stars_pem, stars_key)
 	} else {
-		router.Run(":8080")
+		router.Run(":8079")
 	}
 }
