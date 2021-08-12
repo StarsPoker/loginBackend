@@ -15,7 +15,7 @@ type profilesService struct {
 
 type profilesInterface interface {
 	GetProfile(int64) (*profiles.Profile, *rest_errors.RestErr)
-	GetProfiles(int, int, *profiles.Filter) (profiles.Profiles, *int, *rest_errors.RestErr)
+	GetProfiles(int, int, *profiles.Filter, int64) (profiles.Profiles, *int, *rest_errors.RestErr)
 	GetProfileUser(int64) (*profiles.ProfileUser, *rest_errors.RestErr)
 	GetProfileMenu(int64) (*profiles.ProfileMenu, *rest_errors.RestErr)
 	GetProfileUsers(int, int, *profiles.Filter, int64) (profiles.Users, *int, *rest_errors.RestErr)
@@ -60,9 +60,9 @@ func (s *profilesService) GetProfileMenu(profileMenuId int64) (*profiles.Profile
 	return result, nil
 }
 
-func (s *profilesService) GetProfiles(page int, itemsPerPage int, filter *profiles.Filter) (profiles.Profiles, *int, *rest_errors.RestErr) {
+func (s *profilesService) GetProfiles(page int, itemsPerPage int, filter *profiles.Filter, userId int64) (profiles.Profiles, *int, *rest_errors.RestErr) {
 	dao := &profiles.Profile{}
-	profiles, total, err := dao.GetProfiles(page, itemsPerPage, filter)
+	profiles, total, err := dao.GetProfiles(page, itemsPerPage, filter, userId)
 	if err != nil {
 		return nil, nil, err
 	}

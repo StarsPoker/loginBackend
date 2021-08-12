@@ -102,6 +102,17 @@ func (cont *profileController) GetProfiles(c *gin.Context) {
 	page := 1
 	itemsPerPage := 10
 
+	token := c.Request.Header["Authorization"][0]
+	at, tokenErr := services.AccessTokenService.GetById(token)
+	if tokenErr != nil {
+		err := rest_errors.NewBadRequestError("Invalid access token")
+		c.JSON(err.Status, err)
+		return
+	}
+	user, _ := services.UsersService.GetUser(at.UserId)
+
+	var userId = user.Id
+
 	if pageParam != "" {
 		page, _ = strconv.Atoi(pageParam)
 	}
@@ -110,7 +121,7 @@ func (cont *profileController) GetProfiles(c *gin.Context) {
 		itemsPerPage, _ = strconv.Atoi(itemsPerPageParam)
 	}
 
-	result, total, getErr := services.ProfilesService.GetProfiles(page, itemsPerPage, filter)
+	result, total, getErr := services.ProfilesService.GetProfiles(page, itemsPerPage, filter, userId)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 		return
