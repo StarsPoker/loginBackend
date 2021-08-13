@@ -23,7 +23,7 @@ func (p *Profile) Validate() *rest_errors.RestErr {
 type Users []User
 
 type User struct {
-	Id        int64  `json:"id"`
+	Id        *int64 `json:"id"`
 	Name      string `json:"name"`
 	Role      int64  `json:"role"`
 	Status    int64  `json:"status"`

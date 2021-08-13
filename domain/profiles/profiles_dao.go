@@ -12,14 +12,14 @@ const (
 	errorNoRows               = "no rows in result set"
 	queryDeleteProfile        = "DELETE from profiles WHERE id = ?"
 	queryGetProfile           = "SELECT id, name, profile_code FROM profiles WHERE id = ?"
-	queryGetProfiles          = "SELECT p.id, p.name, p.profile_code FROM profiles p WHERE 1 = 1"
+	queryGetProfiles          = "SELECT p.id, p.name, p.profile_code FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryInsertProfile        = "INSERT INTO profiles (name, profile_code) VALUES (?, ?)"
 	queryUpdateProfile        = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
-	queryTotalProfiles        = "SELECT COUNT(*) as TOTAL FROM profiles p WHERE 1 = 1"
+	queryTotalProfiles        = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryGetProfileUsers      = "SELECT p.id, u.name, u.role, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryGetProfileUsersAdds  = "SELECT (select id from profile_users where id_user = u.id), name, role, status, (select id_profile from profile_users where id_user = u.id) FROM USERS u where u.id not in(select id_user from profile_users where id_profile = ?)"
+	queryGetProfileUsersAdds  = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM USERS u where u.id not in(select id_user from profile_users where id_profile = ?)"
 	queryTotalProfileUsers    = "SELECT COUNT(*) as TOTAL FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryGetProfileAttendants = "SELECT (select id from profile_users where id_user = u.id), name, role, status, (select id_profile from profile_users where id_user = u.id) FROM USERS u where u.id not in(select id_user from profile_users where id_profile = ?)"
+	queryGetProfileAttendants = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM USERS u where u.id not in(select id_user from profile_users where id_profile = ?)"
 	queryInsertProfileUser    = "INSERT INTO profile_users (id_profile, id_user) VALUES (?, ?)"
 	queryUpdateProfileUser    = "UPDATE profile_users SET id_profile = ? WHERE id = ?"
 	queryDeleteProfileUser    = "DELETE from profile_users WHERE id = ?"
@@ -188,7 +188,7 @@ func buildQuery(query *string, queryTotal *string, filter *Filter) {
 	*query = *query + " LIMIT ?, ?"
 }
 
-func (p *Profile) GetProfiles(page int, itemsPerPage int, filter *Filter) ([]Profile, *int, *rest_errors.RestErr) {
+func (p *Profile) GetProfiles(page int, itemsPerPage int, filter *Filter, userId int64) ([]Profile, *int, *rest_errors.RestErr) {
 	query := queryGetProfiles
 	queryTotal := queryTotalProfiles
 	buildQuery(&query, &queryTotal, filter)
@@ -203,7 +203,8 @@ func (p *Profile) GetProfiles(page int, itemsPerPage int, filter *Filter) ([]Pro
 	}
 	defer stmt.Close()
 
-	rows, getErr := stmt.Query(initialResult, itemsPerPage)
+	// aqio
+	rows, getErr := stmt.Query(userId, initialResult, itemsPerPage)
 	if getErr != nil {
 		logger.Error("error when trying to get profiles", getErr)
 		return nil, nil, rest_errors.NewInternalServerError("database error")
@@ -218,7 +219,7 @@ func (p *Profile) GetProfiles(page int, itemsPerPage int, filter *Filter) ([]Pro
 	}
 	defer stmtTotalRows.Close()
 
-	totalRows := stmtTotalRows.QueryRow()
+	totalRows := stmtTotalRows.QueryRow(userId)
 	var total int
 
 	if errTotalRows := totalRows.Scan(&total); errTotalRows != nil {
