@@ -1,6 +1,8 @@
 package profiles
 
 import (
+	"fmt"
+
 	"github.com/StarsPoker/loginBackend/logger"
 
 	"github.com/StarsPoker/loginBackend/datasources/mysql/stars_mysql"
@@ -17,14 +19,23 @@ const (
 	queryUpdateProfile        = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
 	queryTotalProfiles        = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryGetProfileUsers      = "SELECT p.id, u.name, u.role, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryGetProfileUsersAdds  = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM USERS u where u.id not in(select id_user from profile_users where id_profile = ?)"
+	queryGetProfileRoutes     = "SELECT p.id, r.name, r.type, r.menu_id, m.name AS menu_string FROM routes r JOIN profile_routes p ON p.id_route = r.id JOIN menus m ON m.id = r.menu_id WHERE p.id_profile = ?"
+	queryGetProfileUsersAdds  = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user from profile_users where id_profile = ?)"
 	queryTotalProfileUsers    = "SELECT COUNT(*) as TOTAL FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryGetProfileAttendants = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM USERS u where u.id not in(select id_user from profile_users where id_profile = ?)"
+	queryTotalProfileRoutes   = "SELECT COUNT(*) as TOTAL FROM routes r JOIN profile_routes p ON p.id_route = r.id WHERE p.id_profile = ?"
+	queryGetProfileAttendants = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user FROM profile_users where id_profile = ?)"
+	queryGetProfileRoutesAdds = "SELECT id, name, type, menu_id FROM routes r where r.id not in(select id_route FROM profile_routes where id_profile = ?)"
 	queryInsertProfileUser    = "INSERT INTO profile_users (id_profile, id_user) VALUES (?, ?)"
+	queryInsertProfileRoute   = "INSERT INTO profile_routes (id_profile, id_route) VALUES (?, ?)"
 	queryUpdateProfileUser    = "UPDATE profile_users SET id_profile = ? WHERE id = ?"
-	queryDeleteProfileUser    = "DELETE from profile_users WHERE id = ?"
-	queryDeleteProfileMenu    = "DELETE from profile_menus WHERE id = ?"
-	queryGetProfileUser       = "SELECT id, id_user, id_profile FROM profile_users WHERE id = ?"
+	queryDeleteProfileUser    = "DELETE FROM profile_users WHERE id = ?"
+	queryDeleteProfileRoute   = "DELETE FROM profile_routes WHERE id = ?"
+	queryDeleteRoutesRelation = "DELETE profile_routes FROM profile_routes JOIN routes r ON profile_routes.id_route = r.id WHERE r.menu_id = ? AND profile_routes.id_profile = ?"
+	querySaveRoutesRelation   = "INSERT INTO profile_routes (id_route, id_profile) SELECT r.id, p.id FROM routes r JOIN profiles p ON p.id = ? WHERE menu_id = ?"
+	queryDeleteProfileMenu    = "DELETE FROM profile_menus WHERE id = ?"
+	queryGetProfileUser       = "SELECT id, id_user, id_profile FROM profile_users WHERE id_user = ?"
+	queryGetProfileUser2      = "SELECT id, id_user, id_profile FROM profile_users WHERE id = ?"
+	queryGetProfileRoute      = "SELECT id, id_route, id_profile FROM profile_routes WHERE id = ?"
 	queryGetProfileMenu       = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id = ?"
 	queryGetProfileMenuFather = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id_menu = ? and id_profile = ?"
 	queryInsertProfileMenu    = "INSERT INTO profile_menus (id_menu, id_profile) VALUES (?, ?)"
@@ -114,6 +125,44 @@ func (p *ProfileUser) GetProfileUser() *rest_errors.RestErr {
 
 	if getErr := result.Scan(&p.Id, &p.IdUser, &p.IdProfile); getErr != nil {
 		logger.Error("error when trying to get bank (profile_user)", getErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (p *ProfileUser) GetProfileUser2() *rest_errors.RestErr {
+	stmt, err := stars_mysql.Client.Prepare(queryGetProfileUser2)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get bank statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRow(p.IdUser)
+
+	if getErr := result.Scan(&p.Id, &p.IdUser, &p.IdProfile); getErr != nil {
+		logger.Error("error when trying to get bank (profile_user)", getErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (p *ProfileRoute) GetProfileRoute() *rest_errors.RestErr {
+	stmt, err := stars_mysql.Client.Prepare(queryGetProfileRoute)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get profile_route statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRow(p.IdRoute)
+
+	if getErr := result.Scan(&p.Id, &p.IdRoute, &p.IdProfile); getErr != nil {
+		logger.Error("error when trying to get (profile_route)", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
 
@@ -298,6 +347,36 @@ func (pu *ProfileUser) SaveProfileUser() *rest_errors.RestErr {
 	return nil
 }
 
+func (pu *ProfileMenu) SaveRoutesRelation() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(querySaveRoutesRelation)
+
+	if err != nil {
+		logger.Error("error when trying to prepare save pu instance statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+	insertResult, saveErr := stmt.Exec(pu.IdProfile, pu.IdMenu)
+	fmt.Println(pu.IdProfile, pu.IdMenu)
+
+	if saveErr != nil {
+		logger.Error("error when trying to save profile_route", saveErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	profileRouteId, err := insertResult.LastInsertId()
+
+	if err != nil {
+		logger.Error("error when trying to get last insert id after creating a new profile_route", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	pu.Id = profileRouteId
+
+	return nil
+}
+
 func (pm *ProfileMenu) SaveProfileMenu() *rest_errors.RestErr {
 
 	stmt, err := stars_mysql.Client.Prepare(queryInsertProfileMenu)
@@ -395,7 +474,7 @@ func (pu *ProfileUser) DeleteProfileUser() *rest_errors.RestErr {
 	stmt, err := stars_mysql.Client.Prepare(queryDeleteProfileUser)
 
 	if err != nil {
-		logger.Error("error when trying to prepare delete profile statement", err)
+		logger.Error("error when trying to prepare delete profile_user statement", err)
 		return rest_errors.NewInternalServerError("database error")
 	}
 
@@ -404,7 +483,28 @@ func (pu *ProfileUser) DeleteProfileUser() *rest_errors.RestErr {
 	_, deleteErr := stmt.Exec(pu.Id)
 
 	if deleteErr != nil {
-		logger.Error("error when trying to delete profile", err)
+		logger.Error("error when trying to delete profile_user", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (pu *ProfileRoute) DeleteProfileRoute() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryDeleteProfileRoute)
+
+	if err != nil {
+		logger.Error("error when trying to prepare delete profile_route statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	_, deleteErr := stmt.Exec(pu.Id)
+
+	if deleteErr != nil {
+		logger.Error("error when trying to delete profile_route", err)
 		return rest_errors.NewInternalServerError("database error")
 	}
 
@@ -428,6 +528,56 @@ func (pu *ProfileMenu) DeleteProfileMenu() *rest_errors.RestErr {
 		logger.Error("error when trying to delete profile_menu", err)
 		return rest_errors.NewInternalServerError("database error")
 	}
+
+	return nil
+}
+
+func (pu *ProfileMenu) DeleteRoutesRelation() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryDeleteRoutesRelation)
+
+	if err != nil {
+		logger.Error("error when trying to prepare delete routes_relation statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	_, deleteErr := stmt.Exec(pu.IdMenu, pu.IdProfile)
+
+	if deleteErr != nil {
+		logger.Error("error when trying to delete routes_relation", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (pu *ProfileRoute) SaveProfileRoute() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryInsertProfileRoute)
+
+	if err != nil {
+		logger.Error("error when trying to prepare save pu instance statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+	insertResult, saveErr := stmt.Exec(pu.IdProfile, pu.IdRoute)
+
+	if saveErr != nil {
+		logger.Error("error when trying to save profile_route", saveErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	profileRouteId, err := insertResult.LastInsertId()
+
+	if err != nil {
+		logger.Error("error when trying to get last insert id after creating a new profile_route", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	pu.Id = profileRouteId
 
 	return nil
 }
@@ -484,6 +634,63 @@ func (p *Profile) GetProfileUsers(page int, itemsPerPage int, filter *Filter, pr
 		}
 
 		results = append(results, user)
+	}
+
+	return results, &total, nil
+}
+
+func (p *Profile) GetProfileRoutes(page int, itemsPerPage int, filter *Filter, profileId int64) ([]Route, *int, *rest_errors.RestErr) {
+
+	query := queryGetProfileRoutes
+	queryTotal := queryTotalProfileRoutes
+	buildQuery(&query, &queryTotal, filter)
+
+	stmt, err := stars_mysql.Client.Prepare(query)
+
+	initialResult := (page - 1) * itemsPerPage
+
+	if err != nil {
+		logger.Error("error when trying to prepare get routes statement", err)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query(profileId, initialResult, itemsPerPage)
+	if getErr != nil {
+		logger.Error("error when trying to get routes", getErr)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer rows.Close()
+
+	stmtTotalRows, err := stars_mysql.Client.Prepare(queryTotal)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get total routes rows statement", err)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmtTotalRows.Close()
+
+	totalRows := stmtTotalRows.QueryRow(profileId)
+	var total int
+
+	if errTotalRows := totalRows.Scan(&total); errTotalRows != nil {
+		logger.Error("error when trying to get total profiles_routes", errTotalRows)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	if getErr != nil {
+		logger.Error("error when trying to get profiles_routes", getErr)
+		return nil, nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	results := make([]Route, 0)
+	for rows.Next() {
+		var route Route
+		if err := rows.Scan(&route.Id, &route.Name, &route.Type, &route.MenuId, &route.MenuSt); err != nil {
+			return nil, nil, mysql_utils.ParseError(err)
+		}
+
+		results = append(results, route)
 	}
 
 	return results, &total, nil
@@ -556,6 +763,37 @@ func (user *User) GetProfileAttendants(search string, profileId int64) ([]User, 
 			return nil, mysql_utils.ParseError(err)
 		}
 		results = append(results, user)
+	}
+
+	return results, nil
+}
+
+func (route *Route) GetProfileRoutesAdds(search string, profileId int64) ([]Route, *rest_errors.RestErr) {
+
+	query := queryGetProfileRoutesAdds + " AND name LIKE '%" + search + "%'"
+
+	stmt, err := stars_mysql.Client.Prepare(query)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get attendances statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query(profileId)
+	if getErr != nil {
+		logger.Error("error when trying to get attendances", getErr)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer rows.Close()
+
+	results := make([]Route, 0)
+	for rows.Next() {
+		var route Route
+		if err := rows.Scan(&route.Id, &route.Name, &route.Type, &route.MenuId); err != nil {
+			return nil, mysql_utils.ParseError(err)
+		}
+		results = append(results, route)
 	}
 
 	return results, nil

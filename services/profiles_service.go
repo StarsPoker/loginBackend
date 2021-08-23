@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/StarsPoker/loginBackend/domain/menus"
 	"github.com/StarsPoker/loginBackend/domain/profiles"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -19,16 +21,20 @@ type profilesInterface interface {
 	GetProfileUser(int64) (*profiles.ProfileUser, *rest_errors.RestErr)
 	GetProfileMenu(int64) (*profiles.ProfileMenu, *rest_errors.RestErr)
 	GetProfileUsers(int, int, *profiles.Filter, int64) (profiles.Users, *int, *rest_errors.RestErr)
+	GetProfileRoutes(int, int, *profiles.Filter, int64) (profiles.Routes, *int, *rest_errors.RestErr)
 	GetProfileUsersAdds(int, int, *profiles.Filter, int64) (profiles.Users, *rest_errors.RestErr)
 	GetProfileAttendants(search string, profileId int64) (profiles.Users, *rest_errors.RestErr)
+	GetProfileRoutesAdds(search string, profileId int64) (profiles.Routes, *rest_errors.RestErr)
 	CreateProfile(profiles.Profile) (*profiles.Profile, *rest_errors.RestErr)
 	CreateProfileUser(profiles.ProfileUser) (*profiles.ProfileUser, *rest_errors.RestErr)
+	CreateProfileRoute(profiles.ProfileRoute) (*profiles.ProfileRoute, *rest_errors.RestErr)
 	CreateProfileMenu(profiles.ProfileMenu) (*profiles.ProfileMenu, *rest_errors.RestErr)
 	CreateProfileMenuFather(profiles.ProfileMenu) (*profiles.ProfileMenu, *rest_errors.RestErr)
 	UpdateProfileUser(profiles.ProfileUser) (*profiles.ProfileUser, *rest_errors.RestErr)
 	UpdateProfile(profiles.Profile) (*profiles.Profile, *rest_errors.RestErr)
 	DeleteProfile(p profiles.Profile) *rest_errors.RestErr
 	DeleteProfileUser(p profiles.ProfileUser) *rest_errors.RestErr
+	DeleteProfileRoute(p profiles.ProfileRoute) *rest_errors.RestErr
 	DeleteProfileMenu(p profiles.ProfileMenu) *rest_errors.RestErr
 	DeleteProfileMenuFather(p profiles.ProfileMenu) *rest_errors.RestErr
 }
@@ -45,6 +51,24 @@ func (s *profilesService) GetProfile(profileId int64) (*profiles.Profile, *rest_
 func (s *profilesService) GetProfileUser(profileUserId int64) (*profiles.ProfileUser, *rest_errors.RestErr) {
 	result := &profiles.ProfileUser{IdUser: profileUserId}
 	if err := result.GetProfileUser(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *profilesService) GetProfileUser2(profileUserId int64) (*profiles.ProfileUser, *rest_errors.RestErr) {
+	result := &profiles.ProfileUser{IdUser: profileUserId}
+	if err := result.GetProfileUser2(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *profilesService) GetProfileRoute(profileRouteId int64) (*profiles.ProfileRoute, *rest_errors.RestErr) {
+	result := &profiles.ProfileRoute{IdRoute: profileRouteId}
+	if err := result.GetProfileRoute(); err != nil {
 		return nil, err
 	}
 
@@ -122,6 +146,16 @@ func (s *profilesService) GetProfileUsers(page int, itemsPerPage int, filter *pr
 	return profiles, total, nil
 }
 
+func (s *profilesService) GetProfileRoutes(page int, itemsPerPage int, filter *profiles.Filter, profileId int64) (profiles.Routes, *int, *rest_errors.RestErr) {
+	dao := &profiles.Profile{}
+	profiles, total, err := dao.GetProfileRoutes(page, itemsPerPage, filter, profileId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return profiles, total, nil
+}
+
 func (s *profilesService) GetProfileUsersAdds(page int, itemsPerPage int, filter *profiles.Filter, profileId int64) (profiles.Users, *rest_errors.RestErr) {
 	dao := &profiles.Profile{}
 	profiles, err := dao.GetProfileUsersAdds(page, itemsPerPage, filter, profileId)
@@ -142,6 +176,16 @@ func (s *profilesService) GetProfileAttendants(search string, profileId int64) (
 	return profiles, nil
 }
 
+func (s *profilesService) GetProfileRoutesAdds(search string, profileId int64) (profiles.Routes, *rest_errors.RestErr) {
+	dao := &profiles.Route{}
+	profiles, err := dao.GetProfileRoutesAdds(search, profileId)
+	if err != nil {
+		return nil, err
+	}
+
+	return profiles, nil
+}
+
 func (s *profilesService) CreateProfileUser(profileToSave profiles.ProfileUser) (*profiles.ProfileUser, *rest_errors.RestErr) {
 
 	if err := profileToSave.Validate(); err != nil {
@@ -154,29 +198,33 @@ func (s *profilesService) CreateProfileUser(profileToSave profiles.ProfileUser) 
 	return &profileToSave, nil
 }
 
+func (s *profilesService) CreateProfileRoute(profileToSave profiles.ProfileRoute) (*profiles.ProfileRoute, *rest_errors.RestErr) {
+
+	if err := profileToSave.Validate(); err != nil {
+		return nil, err
+	}
+
+	if err := profileToSave.SaveProfileRoute(); err != nil {
+		return nil, err
+	}
+	return &profileToSave, nil
+}
+
 func (s *profilesService) CreateProfileMenu(profileToSave profiles.ProfileMenu) (*profiles.ProfileMenu, *rest_errors.RestErr) {
 	if err := profileToSave.Validate(); err != nil {
 		return nil, err
 	}
 
-	// Buscar o menu que vou relacionar
 	result := &menus.Menu{Id: profileToSave.IdMenu}
 	if err := result.GetMenu(); err != nil {
 		return nil, err
 	}
 
-	// Buscar o pai do menu que vou relacionar
 	fatherId := *result.Parent
-
-	// Ver se o pai do menu que vou relacionar está relacionado ou nao
 	total, err := profileToSave.GetTotalProfileMenu(fatherId)
 	if err != nil {
 		return nil, err
 	}
-
-	// if (não esta relacionado) {
-	//	relacionar o id do pai com o id do profile que estou recebendo
-	// }
 
 	if *total == 0 {
 		profileFather := &profiles.ProfileMenu{IdMenu: fatherId, IdProfile: profileToSave.IdProfile}
@@ -185,11 +233,18 @@ func (s *profilesService) CreateProfileMenu(profileToSave profiles.ProfileMenu) 
 		}
 	}
 
-	// Depois Continuar o process normal
-
 	if err := profileToSave.SaveProfileMenu(); err != nil {
 		return nil, err
 	}
+
+	if err := profileToSave.DeleteRoutesRelation(); err != nil {
+		return nil, err
+	}
+
+	if err := profileToSave.SaveRoutesRelation(); err != nil {
+		return nil, err
+	}
+
 	return &profileToSave, nil
 }
 
@@ -221,12 +276,25 @@ func (s *profilesService) UpdateProfileUser(p profiles.ProfileUser) (*profiles.P
 }
 
 func (s *profilesService) DeleteProfileUser(p profiles.ProfileUser) *rest_errors.RestErr {
-	current, err := s.GetProfileUser(p.Id)
+	current, err := s.GetProfileUser2(p.Id)
 	if err != nil {
 		return err
 	}
 
 	if err := current.DeleteProfileUser(); err != nil {
+		return nil
+	}
+
+	return nil
+}
+
+func (s *profilesService) DeleteProfileRoute(p profiles.ProfileRoute) *rest_errors.RestErr {
+	current, err := s.GetProfileRoute(p.Id)
+	if err != nil {
+		return err
+	}
+
+	if err := current.DeleteProfileRoute(); err != nil {
 		return nil
 	}
 
@@ -239,7 +307,6 @@ func (s *profilesService) DeleteProfileMenu(p profiles.ProfileMenu) *rest_errors
 		return err
 	}
 
-	// Buscar o menu que vou apagar
 	result := &menus.Menu{Id: current.IdMenu}
 	if err := result.GetMenu(); err != nil {
 		return err
@@ -249,28 +316,24 @@ func (s *profilesService) DeleteProfileMenu(p profiles.ProfileMenu) *rest_errors
 	busca.ProfileFather = &current.IdProfile
 	busca.Id = *result.Parent
 
-	// Buscar os menus irmaos
 	brothers, err := busca.GetChildrens()
 	if err != nil {
 		return err
 	}
 
-	// ver se existe mais de um filho relacionado
 	var count = 0
 	for i, s := range brothers {
 		if s.HasRelation == 1 {
-			count = count + i
+			count = count + 1
 		}
+		fmt.Println(i)
 	}
 
-	// if (nao existir irmaos relacionados) {
-	//	apagar o id do pai com o id do profile que estou recebendo
-	// }
 	var buscaFather profiles.ProfileMenu
 	buscaFather.IdProfile = current.IdProfile
 	buscaFather.IdMenu = *result.Parent
 
-	if count == 0 {
+	if count == 1 {
 		father, err := buscaFather.GetProfileMenuFather()
 		if err != nil {
 			return err
@@ -283,8 +346,11 @@ func (s *profilesService) DeleteProfileMenu(p profiles.ProfileMenu) *rest_errors
 		}
 	}
 
-	// Depois Continuar o process normal
 	if err := current.DeleteProfileMenu(); err != nil {
+		return nil
+	}
+
+	if err := current.DeleteRoutesRelation(); err != nil {
 		return nil
 	}
 

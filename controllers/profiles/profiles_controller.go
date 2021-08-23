@@ -17,6 +17,7 @@ var (
 type ProfileInterface interface {
 	CreateProfile(c *gin.Context)
 	CreateProfileUser(c *gin.Context)
+	CreateProfileRoute(c *gin.Context)
 	CreateProfileMenu(c *gin.Context)
 	CreateProfileMenuFather(c *gin.Context)
 	GetProfiles(c *gin.Context)
@@ -24,11 +25,14 @@ type ProfileInterface interface {
 	UpdateProfile(c *gin.Context)
 	DeleteProfile(c *gin.Context)
 	DeleteProfileUser(c *gin.Context)
+	DeleteProfileRoute(c *gin.Context)
 	DeleteProfileMenu(c *gin.Context)
 	DeleteProfileMenuFather(c *gin.Context)
 	GetProfileUsers(c *gin.Context)
+	GetProfileRoutes(c *gin.Context)
 	GetProfileUsersAdds(c *gin.Context)
 	GetProfileAttendants(c *gin.Context)
+	GetProfileRoutesAdds(c *gin.Context)
 	UpdateProfileUser(c *gin.Context)
 	GetProfileUser(c *gin.Context)
 }
@@ -224,6 +228,28 @@ func (cont *profileController) DeleteProfileUser(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
 }
 
+func (cont *profileController) DeleteProfileRoute(c *gin.Context) {
+	routeIdParam := c.Param("route_id")
+
+	routeId, routeErr := strconv.ParseInt(routeIdParam, 10, 64)
+
+	if routeErr != nil {
+		restErr := rest_errors.NewBadRequestError("route id should be a number")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	var routeDelete profiles.ProfileRoute
+	routeDelete.Id = routeId
+
+	deleteErr := services.ProfilesService.DeleteProfileRoute(routeDelete)
+	if deleteErr != nil {
+		c.JSON(deleteErr.Status, deleteErr)
+		return
+	}
+	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
+}
+
 func (cont *profileController) DeleteProfileMenu(c *gin.Context) {
 	menuIdParam := c.Param("profilemenu_id")
 	menuId, menuErr := strconv.ParseInt(menuIdParam, 10, 64)
@@ -305,6 +331,45 @@ func (cont *profileController) GetProfileUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, usersResponse)
 }
 
+func (cont *profileController) GetProfileRoutes(c *gin.Context) {
+	profileIdParam := c.Param("profile_id")
+
+	profileId, profileErr := strconv.ParseInt(profileIdParam, 10, 64)
+
+	if profileErr != nil {
+		restErr := rest_errors.NewBadRequestError("profile id should be a number")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	pageParam := c.Query("page")
+	itemsPerPageParam := c.Query("itemsPerPage")
+	filter := buildFilter(c)
+	page := 1
+	itemsPerPage := 10
+
+	if pageParam != "" {
+		page, _ = strconv.Atoi(pageParam)
+	}
+
+	if itemsPerPageParam != "" {
+		itemsPerPage, _ = strconv.Atoi(itemsPerPageParam)
+	}
+
+	result, total, getErr := services.ProfilesService.GetProfileRoutes(page, itemsPerPage, filter, profileId)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	var routesResponse profiles.RoutesResponse
+
+	routesResponse.Total = *total
+	routesResponse.Routes = result
+
+	c.JSON(http.StatusOK, routesResponse)
+}
+
 func (cont *profileController) GetProfileUsersAdds(c *gin.Context) {
 	profileIdParam := c.Param("profile_id")
 
@@ -364,6 +429,27 @@ func (cont *profileController) GetProfileAttendants(c *gin.Context) {
 	c.JSON(http.StatusOK, userList)
 }
 
+func (cont *profileController) GetProfileRoutesAdds(c *gin.Context) {
+	profileIdParam := c.Param("profile_id")
+
+	profileId, profileErr := strconv.ParseInt(profileIdParam, 10, 64)
+
+	if profileErr != nil {
+		restErr := rest_errors.NewBadRequestError("profile id should be a number")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	search := c.Param("search")
+
+	routeList, getErr := services.ProfilesService.GetProfileRoutesAdds(search, profileId)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+	c.JSON(http.StatusOK, routeList)
+}
+
 func (cont *profileController) CreateProfileUser(c *gin.Context) {
 	var p profiles.ProfileUser
 
@@ -374,6 +460,23 @@ func (cont *profileController) CreateProfileUser(c *gin.Context) {
 	}
 
 	result, saveErr := services.ProfilesService.CreateProfileUser(p)
+	if saveErr != nil {
+		c.JSON(saveErr.Status, saveErr)
+		return
+	}
+	c.JSON(http.StatusCreated, result)
+}
+
+func (cont *profileController) CreateProfileRoute(c *gin.Context) {
+	var p profiles.ProfileRoute
+
+	if err := c.ShouldBindJSON(&p); err != nil {
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	result, saveErr := services.ProfilesService.CreateProfileRoute(p)
 	if saveErr != nil {
 		c.JSON(saveErr.Status, saveErr)
 		return

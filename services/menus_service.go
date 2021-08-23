@@ -15,7 +15,6 @@ type menusService struct {
 
 type menusInterface interface {
 	InsertMenu(menus.Menu) (*menus.Menu, *rest_errors.RestErr)
-	// UpdateChildrensMenu(*menus.Menu) *rest_errors.RestErr
 	GetChildrens(menus.Menu) (menus.Menus, *rest_errors.RestErr)
 	GetMenus(menus.Menu) (menus.Menus, *rest_errors.RestErr)
 	GetMenu(int64) (*menus.Menu, *rest_errors.RestErr)
@@ -24,11 +23,11 @@ type menusInterface interface {
 	ChangeOrderDownMenu(menus.Menu) (*menus.Menu, *rest_errors.RestErr)
 	DeleteMenu(menus.Menu) *rest_errors.RestErr
 	BuildMenu(int64) ([]profiles.BuildMenu, *rest_errors.RestErr)
+	GetChildrenSearch(search string) (menus.Menus, *rest_errors.RestErr)
 }
 
 func (s *menusService) BuildMenu(acessToken int64) ([]profiles.BuildMenu, *rest_errors.RestErr) {
 
-	// Buscar a qual perfil de acesso o user esta relacionado
 	profileBusca := &profiles.Profile{Id: acessToken}
 
 	profileRelation, err := profileBusca.GetProfileRelation()
@@ -92,7 +91,6 @@ func (s *menusService) InsertMenu(menusToSave menus.Menu) (*menus.Menu, *rest_er
 		return nil, err
 	}
 
-	//busca maior ordem
 	maxOrder := menusToSave.GetMaxOrder()
 
 	if maxOrder == nil {
@@ -186,4 +184,14 @@ func (s *menusService) ChangeOrderDownMenu(m menus.Menu) (*menus.Menu, *rest_err
 	}
 
 	return &m, nil
+}
+
+func (s *menusService) GetChildrenSearch(search string) (menus.Menus, *rest_errors.RestErr) {
+	dao := &menus.Menus{}
+	menus, err := dao.GetChildrenSearch(search)
+	if err != nil {
+		return nil, err
+	}
+
+	return menus, nil
 }

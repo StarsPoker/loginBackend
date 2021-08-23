@@ -30,6 +30,16 @@ type User struct {
 	IdProfile *int64 `json:"id_profile"`
 }
 
+type Routes []Route
+
+type Route struct {
+	Id     int64  `json:"id"`
+	Name   string `json:"name"`
+	Type   int64  `json:"type"`
+	MenuSt string `json:"menu_string"`
+	MenuId int64  `json:"menu"`
+}
+
 type ProfilesUsers []ProfileUser
 
 type ProfileUser struct {
@@ -38,7 +48,23 @@ type ProfileUser struct {
 	IdProfile int64 `json:"id_profile"`
 }
 
+type ProfilesRoutes []ProfileRoute
+
+type ProfileRoute struct {
+	Id        int64 `json:"id"`
+	IdRoute   int64 `json:"id_route"`
+	IdProfile int64 `json:"id_profile"`
+}
+
 func (pu *ProfileUser) Validate() *rest_errors.RestErr {
+	// if pu.IdProfile != -1 {
+	// 	return rest_errors.NewBadRequestError("invalid access token id")
+	// }
+
+	return nil
+}
+
+func (pu *ProfileRoute) Validate() *rest_errors.RestErr {
 	// if pu.IdProfile != -1 {
 	// 	return rest_errors.NewBadRequestError("invalid access token id")
 	// }

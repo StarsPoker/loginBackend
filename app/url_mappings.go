@@ -4,6 +4,7 @@ import (
 	"github.com/StarsPoker/loginBackend/controllers/access_token"
 	"github.com/StarsPoker/loginBackend/controllers/menus"
 	"github.com/StarsPoker/loginBackend/controllers/profiles"
+	"github.com/StarsPoker/loginBackend/controllers/routes"
 	"github.com/StarsPoker/loginBackend/controllers/users"
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +12,7 @@ import (
 func mapMenusRoutes(api *gin.RouterGroup) {
 	menusGroup := api.Group("menus")
 
+	menusGroup.GET("/children_search/:search", menus.MenusController.GetChildrenSearch)
 	menusGroup.GET("/menus/:profile_father", menus.MenusController.GetMenus)
 	menusGroup.GET("/childrens", menus.MenusController.GetChildrens)
 	menusGroup.POST("", menus.MenusController.InsertMenu)
@@ -21,21 +23,34 @@ func mapMenusRoutes(api *gin.RouterGroup) {
 	menusGroup.PUT("/change_order_down/:menu_id", menus.MenusController.ChangeOrderDownMenu)
 }
 
+func mapRoutesRoutes(api *gin.RouterGroup) {
+	routesGroup := api.Group("routes")
+
+	routesGroup.GET("", routes.RouteController.GetRoutes)
+	routesGroup.POST("", routes.RouteController.CreateRoute)
+	routesGroup.PUT("/updateRoute/:route_id", routes.RouteController.UpdateRoute)
+	routesGroup.DELETE("/deleteRoute/:route_id", routes.RouteController.DeleteRoute)
+}
+
 func mapProfileRoutes(api *gin.RouterGroup) {
 	profileGroup := api.Group("profiles")
 
 	profileGroup.GET("/:profile_id/profile_attendants/:search", profiles.ProfileController.GetProfileAttendants)
+	profileGroup.GET("/:profile_id/profile_routesAdds/:search", profiles.ProfileController.GetProfileRoutesAdds)
 	profileGroup.GET("/:profile_id/usersadds", profiles.ProfileController.GetProfileUsersAdds)
 	profileGroup.GET("/:profile_id/users", profiles.ProfileController.GetProfileUsers)
+	profileGroup.GET("/:profile_id/routes", profiles.ProfileController.GetProfileRoutes)
 	profileGroup.GET("/:profile_id", profiles.ProfileController.GetProfile)
 	profileGroup.GET("", profiles.ProfileController.GetProfiles)
 	profileGroup.POST("", profiles.ProfileController.CreateProfile)
 	profileGroup.POST("/user", profiles.ProfileController.CreateProfileUser)
+	profileGroup.POST("/route", profiles.ProfileController.CreateProfileRoute)
 	profileGroup.POST("/menu", profiles.ProfileController.CreateProfileMenu)
 	profileGroup.POST("/menu_father", profiles.ProfileController.CreateProfileMenuFather)
 	profileGroup.PUT("/updateProfile/:profile_id", profiles.ProfileController.UpdateProfile)
 	profileGroup.PUT("/updateUser/:user_id", profiles.ProfileController.UpdateProfileUser)
 	profileGroup.DELETE("/deleteUser/:user_id", profiles.ProfileController.DeleteProfileUser)
+	profileGroup.DELETE("/deleteRoute/:route_id", profiles.ProfileController.DeleteProfileRoute)
 	profileGroup.DELETE("/deleteProfile/:profile_id", profiles.ProfileController.DeleteProfile)
 	profileGroup.DELETE("/deleteMenu/:profilemenu_id", profiles.ProfileController.DeleteProfileMenu)
 	profileGroup.DELETE("/deleteMenuFather/:profilemenu_id", profiles.ProfileController.DeleteProfileMenuFather)
@@ -72,4 +87,5 @@ func mapUrls() {
 	mapOauthRoutes(api)
 	mapProfileRoutes(api)
 	mapMenusRoutes(api)
+	mapRoutesRoutes(api)
 }

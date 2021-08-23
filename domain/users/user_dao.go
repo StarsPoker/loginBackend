@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/logger"
@@ -33,7 +32,6 @@ var (
 func buildQuery(query *string, queryTotal *string, filter *Filter) {
 
 	concatQuery := ""
-	fmt.Println(filter.Role)
 
 	if filter.Role != "" {
 		concatQuery = concatQuery + " AND u.role = " + filter.Role

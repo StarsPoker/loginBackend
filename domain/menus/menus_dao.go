@@ -22,6 +22,7 @@ const (
 	queryUpdateOrderDownFirst = "UPDATE menus SET menu_order = (menu_order - 1) WHERE menu_order = (? + 1)"
 	queryUpdateOrderDownNext  = "UPDATE menus SET menu_order = (menu_order + 1) WHERE id = ?"
 	queryGetMaxOrder          = "SELECT count(*) as total from menus m where m.level = 1"
+	queryGetChildrenSearch    = "SELECT m.id, m.name, m.parent, m.link FROM menus m WHERE 2 = 2"
 )
 
 func (me *Menu) GetMenus() ([]Menu, *rest_errors.RestErr) {
@@ -319,4 +320,35 @@ func (m *Menu) UpdateOrderDownNext() *rest_errors.RestErr {
 	}
 
 	return nil
+}
+
+func (menu *Menus) GetChildrenSearch(search string) ([]Menu, *rest_errors.RestErr) {
+
+	query := queryGetChildrenSearch + " AND m.name LIKE '%" + search + "%'"
+
+	stmt, err := stars_mysql.Client.Prepare(query)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get attendances statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query()
+
+	if getErr != nil {
+		logger.Error("error when trying to get attendances", getErr)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	results := make([]Menu, 0)
+	for rows.Next() {
+		var menu Menu
+		if err := rows.Scan(&menu.Id, &menu.Name, &menu.Parent, &menu.Link); err != nil {
+			return nil, mysql_utils.ParseError(err)
+		}
+		results = append(results, menu)
+	}
+
+	return results, nil
 }
