@@ -19,22 +19,15 @@ const (
 	queryUpdateProfile        = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
 	queryTotalProfiles        = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryGetProfileUsers      = "SELECT p.id, u.name, u.role, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-<<<<<<< HEAD
 	queryGetProfileRoutes     = "SELECT p.id, r.name, r.type, r.menu_id, m.name AS menu_string FROM routes r JOIN profile_routes p ON p.id_route = r.id JOIN menus m ON m.id = r.menu_id WHERE p.id_profile = ?"
 	queryGetProfileUsersAdds  = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user from profile_users where id_profile = ?)"
 	queryTotalProfileUsers    = "SELECT COUNT(*) as TOTAL FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
 	queryTotalProfileRoutes   = "SELECT COUNT(*) as TOTAL FROM routes r JOIN profile_routes p ON p.id_route = r.id WHERE p.id_profile = ?"
 	queryGetProfileAttendants = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user FROM profile_users where id_profile = ?)"
 	queryGetProfileRoutesAdds = "SELECT id, name, type, menu_id FROM routes r where r.id not in(select id_route FROM profile_routes where id_profile = ?)"
-=======
-	queryGetProfileUsersAdds  = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user from profile_users where id_profile = ?)"
-	queryTotalProfileUsers    = "SELECT COUNT(*) as TOTAL FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryGetProfileAttendants = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user from profile_users where id_profile = ?)"
->>>>>>> 596539ee8cf2db7a362d56c03e54bc99875e633c
 	queryInsertProfileUser    = "INSERT INTO profile_users (id_profile, id_user) VALUES (?, ?)"
 	queryInsertProfileRoute   = "INSERT INTO profile_routes (id_profile, id_route) VALUES (?, ?)"
 	queryUpdateProfileUser    = "UPDATE profile_users SET id_profile = ? WHERE id = ?"
-<<<<<<< HEAD
 	queryDeleteProfileUser    = "DELETE FROM profile_users WHERE id = ?"
 	queryDeleteProfileRoute   = "DELETE FROM profile_routes WHERE id = ?"
 	queryDeleteRoutesRelation = "DELETE profile_routes FROM profile_routes JOIN routes r ON profile_routes.id_route = r.id WHERE r.menu_id = ? AND profile_routes.id_profile = ?"
@@ -43,11 +36,6 @@ const (
 	queryGetProfileUser       = "SELECT id, id_user, id_profile FROM profile_users WHERE id_user = ?"
 	queryGetProfileUser2      = "SELECT id, id_user, id_profile FROM profile_users WHERE id = ?"
 	queryGetProfileRoute      = "SELECT id, id_route, id_profile FROM profile_routes WHERE id = ?"
-=======
-	queryDeleteProfileUser    = "DELETE from profile_users WHERE id = ?"
-	queryDeleteProfileMenu    = "DELETE from profile_menus WHERE id = ?"
-	queryGetProfileUser       = "SELECT id, id_user, id_profile FROM profile_users WHERE id_user = ?"
->>>>>>> 596539ee8cf2db7a362d56c03e54bc99875e633c
 	queryGetProfileMenu       = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id = ?"
 	queryGetProfileMenuFather = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id_menu = ? and id_profile = ?"
 	queryInsertProfileMenu    = "INSERT INTO profile_menus (id_menu, id_profile) VALUES (?, ?)"
