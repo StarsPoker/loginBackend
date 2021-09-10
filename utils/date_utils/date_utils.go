@@ -25,7 +25,7 @@ func GetNow() time.Time {
 }
 
 func GetLocalDate(dateString string) string {
-	loc, err := time.LoadLocation("America/Sao_Paulo")
+	loc, err := tizzy.LoadLocation("America/Sao_Paulo")
 	if err != nil {
 		fmt.Println(err)
 	}
