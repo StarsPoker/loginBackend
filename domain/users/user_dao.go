@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/logger"
@@ -15,7 +14,7 @@ import (
 
 const (
 	errorNoRows                 = "no rows in result set"
-	queryGetUser                = "SELECT id, name, email, password, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), instance_id FROM users WHERE id = ?"
+	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
 	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
@@ -33,7 +32,6 @@ var (
 func buildQuery(query *string, queryTotal *string, filter *Filter) {
 
 	concatQuery := ""
-	fmt.Println(filter.Role)
 
 	if filter.Role != "" {
 		concatQuery = concatQuery + " AND u.role = " + filter.Role

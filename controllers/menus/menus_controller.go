@@ -23,6 +23,7 @@ type MenusInterface interface {
 	UpdateMenu(c *gin.Context)
 	ChangeOrderUpMenu(c *gin.Context)
 	ChangeOrderDownMenu(c *gin.Context)
+	GetChildrenSearch(c *gin.Context)
 }
 
 type menusController struct {
@@ -222,4 +223,15 @@ func (cont *menusController) BuildMenu(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, menus)
+}
+
+func (cont *menusController) GetChildrenSearch(c *gin.Context) {
+	search := c.Param("search")
+
+	menuList, getErr := services.MenusService.GetChildrenSearch(search)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+	c.JSON(http.StatusOK, menuList)
 }
