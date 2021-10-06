@@ -1,6 +1,7 @@
 package stars_mongo
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/mgo.v2"
@@ -31,6 +32,7 @@ func GetSession() (*mgo.Session, error) {
 	if port == "" {
 		port = "27017"
 	}
+	fmt.Println(username + ":" + password + "@" + host + ":" + port)
 	if globalSession == nil {
 		var err error
 		globalSession, err = mgo.Dial(username + ":" + password + "@" + host + ":" + port)
@@ -51,7 +53,7 @@ func init() {
 		port = "27017"
 	}
 	var err error
-
+	fmt.Println(username + ":" + password + "@" + host + ":" + port)
 	globalSession, err = mgo.Dial(username + ":" + password + "@" + host + ":" + port)
 	if err != nil {
 		panic(err)
