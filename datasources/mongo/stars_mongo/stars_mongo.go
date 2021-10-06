@@ -1,6 +1,7 @@
 package stars_mongo
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/mgo.v2"
@@ -37,7 +38,7 @@ func GetSession() (*mgo.Session, error) {
 		if err != nil {
 			return nil, err
 		}
-
+		fmt.Println(username + ":" + password + "@" + host + ":" + port)
 		globalSession.SetMode(mgo.Monotonic, true)
 	}
 	return globalSession.Copy(), nil
