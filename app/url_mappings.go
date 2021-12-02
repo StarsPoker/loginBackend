@@ -17,6 +17,7 @@ func mapMenusRoutes(api *gin.RouterGroup) {
 	menusGroup.GET("/childrens", menus.MenusController.GetChildrens)
 	menusGroup.POST("", menus.MenusController.InsertMenu)
 	menusGroup.GET("/build_menu", menus.MenusController.BuildMenu)
+	menusGroup.GET("/profile_permission/:menu_name", menus.MenusController.ProfilePermission)
 	menusGroup.DELETE("/:menu_id", menus.MenusController.DeleteMenu)
 	menusGroup.PUT("/update/:menu_id", menus.MenusController.UpdateMenu)
 	menusGroup.PUT("/change_order_up/:menu_id", menus.MenusController.ChangeOrderUpMenu)
@@ -48,6 +49,7 @@ func mapProfileRoutes(api *gin.RouterGroup) {
 	profileGroup.POST("/menu", profiles.ProfileController.CreateProfileMenu)
 	profileGroup.POST("/menu_father", profiles.ProfileController.CreateProfileMenuFather)
 	profileGroup.PUT("/updateProfile/:profile_id", profiles.ProfileController.UpdateProfile)
+	profileGroup.PUT("/updateParam/:profile_id", profiles.ProfileController.UpdateParam)
 	profileGroup.PUT("/updateUser/:user_id", profiles.ProfileController.UpdateProfileUser)
 	profileGroup.DELETE("/deleteUser/:user_id", profiles.ProfileController.DeleteProfileUser)
 	profileGroup.DELETE("/deleteRoute/:route_id", profiles.ProfileController.DeleteProfileRoute)
@@ -64,7 +66,8 @@ func mapUsersRoutes(api *gin.RouterGroup) {
 	usersGroup.GET("/user/:user_id", users.UserController.GetUser)
 	usersGroup.POST("", users.UserController.CreateUser)
 	usersGroup.POST("/change_password/:user_id", users.UserController.ChangePassword)
-	usersGroup.PUT("/:user_id", users.UserController.UpdateUser)
+	usersGroup.PUT("/update/:user_id", users.UserController.UpdateUser)
+	usersGroup.PUT("/update_useredit/:user_id", users.UserController.UpdateUserEdit)
 	usersGroup.DELETE("/:user_id", users.UserController.DeleteUser)
 }
 

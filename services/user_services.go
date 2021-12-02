@@ -20,6 +20,7 @@ type usersServiceInterface interface {
 	ChangePassword(users.ChangePassword) *rest_errors.RestErr
 	CreateUser(users.User) (*users.User, *rest_errors.RestErr)
 	UpdateUser(users.User) (*users.User, *rest_errors.RestErr)
+	UpdateUserEdit(users.User) (*users.User, *rest_errors.RestErr)
 	DeleteUser(user users.User) *rest_errors.RestErr
 	GetAttendants(search string) (users.Users, *rest_errors.RestErr)
 }
@@ -77,9 +78,46 @@ func (s *usersService) UpdateUser(user users.User) (*users.User, *rest_errors.Re
 	current.Role = user.Role
 	current.Status = user.Status
 	current.InstanceId = user.InstanceId
+	current.Name = user.Name
 
 	if err := current.Update(); err != nil {
 		return nil, err
+	}
+
+	return current, nil
+}
+
+func (s *usersService) UpdateUserEdit(user users.User) (*users.User, *rest_errors.RestErr) {
+	current, err := UsersService.GetUser(user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Name != "" {
+		current.Name = user.Name
+
+		if err := current.UpdateUserName(); err != nil {
+			return nil, err
+		}
+	}
+
+	if user.Email != "" {
+		current.Email = user.Email
+
+		if err := current.UpdateUserEmail(); err != nil {
+			return nil, err
+		}
+	}
+
+	if current.Password == crypto_utils.GetMd5(user.Password) {
+		return nil, rest_errors.NewBadRequestError("A nova senha deve ser diferente da senha atual")
+	} else if current.Password == crypto_utils.GetMd5(user.OldPassword) {
+		current.Password = crypto_utils.GetMd5(user.Password)
+		if err := current.ChangePassword(); err != nil {
+			return nil, err
+		}
+	} else if user.Password != "" {
+		return nil, rest_errors.NewBadRequestError("A senha antiga não corresponde")
 	}
 
 	return current, nil

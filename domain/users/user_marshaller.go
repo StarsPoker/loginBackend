@@ -4,6 +4,7 @@ type PublicUser struct {
 	Name   string `json:"name"`
 	Role   int64  `json:"role"`
 	Status int64  `json:"status"`
+	Email  string `json:"email"`
 }
 
 type PrivateUser struct {

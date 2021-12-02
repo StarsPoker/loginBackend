@@ -23,6 +23,7 @@ type menusInterface interface {
 	ChangeOrderDownMenu(menus.Menu) (*menus.Menu, *rest_errors.RestErr)
 	DeleteMenu(menus.Menu) *rest_errors.RestErr
 	BuildMenu(int64) ([]profiles.BuildMenu, *rest_errors.RestErr)
+	ProfilePermission(int64, string) (*menus.Permission, *rest_errors.RestErr)
 	GetChildrenSearch(search string) (menus.Menus, *rest_errors.RestErr)
 }
 
@@ -54,6 +55,21 @@ func (s *menusService) BuildMenu(acessToken int64) ([]profiles.BuildMenu, *rest_
 	}
 
 	return buildMenus, nil
+}
+
+func (s *menusService) ProfilePermission(acessToken int64, menuName string) (*menus.Permission, *rest_errors.RestErr) {
+
+	profilePermission := &menus.ProfilePermission{MenuName: menuName, UserId: acessToken}
+
+	count, err := profilePermission.GetUserPermission()
+	if err != nil {
+		return nil, err
+	}
+
+	var permission menus.Permission
+	permission.Permission = *count
+
+	return &permission, nil
 }
 
 func (s *menusService) GetMenu(menuId int64) (*menus.Menu, *rest_errors.RestErr) {

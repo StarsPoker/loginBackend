@@ -18,6 +18,7 @@ type UserControllerInterface interface {
 	getUserId(string) (int64, *rest_errors.RestErr)
 	CreateUser(*gin.Context)
 	UpdateUser(*gin.Context)
+	UpdateUserEdit(*gin.Context)
 	DeleteUser(c *gin.Context)
 	GetUser(c *gin.Context)
 	GetUsers(c *gin.Context)
@@ -69,6 +70,31 @@ func (cont *userController) UpdateUser(c *gin.Context) {
 	user.Id = userId
 
 	result, updateErr := services.UsersService.UpdateUser(user)
+	if updateErr != nil {
+		c.JSON(updateErr.Status, updateErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
+}
+
+func (cont *userController) UpdateUserEdit(c *gin.Context) {
+	userId, idErr := UserController.getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	var user users.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	user.Id = userId
+
+	result, updateErr := services.UsersService.UpdateUserEdit(user)
 	if updateErr != nil {
 		c.JSON(updateErr.Status, updateErr)
 		return

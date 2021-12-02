@@ -22,6 +22,7 @@ type User struct {
 	InstanceId   *string `json:"instance_id"`
 	InstanceName *string `json:"instance_name"`
 	DateCreated  string  `json:"date_created"`
+	OldPassword  string  `json:"old_password"`
 }
 
 type Filter struct {
