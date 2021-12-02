@@ -23,6 +23,7 @@ type ProfileInterface interface {
 	GetProfiles(c *gin.Context)
 	GetProfile(c *gin.Context)
 	UpdateProfile(c *gin.Context)
+	UpdateParam(c *gin.Context)
 	DeleteProfile(c *gin.Context)
 	DeleteProfileUser(c *gin.Context)
 	DeleteProfileRoute(c *gin.Context)
@@ -175,6 +176,34 @@ func (cont *profileController) UpdateProfile(c *gin.Context) {
 	b.Id = profileId
 
 	result, updateErr := services.ProfilesService.UpdateProfile(b)
+	if updateErr != nil {
+		c.JSON(updateErr.Status, updateErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+func (cont *profileController) UpdateParam(c *gin.Context) {
+	profileIdParam := c.Param("profile_id")
+	profileId, profileErr := strconv.ParseInt(profileIdParam, 10, 64)
+
+	if profileErr != nil {
+		restErr := rest_errors.NewBadRequestError("profile id should be a number")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	var b profiles.Profile
+	if err := c.ShouldBindJSON(&b); err != nil {
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	b.Id = profileId
+
+	result, updateErr := services.ProfilesService.UpdateParam(b)
 	if updateErr != nil {
 		c.JSON(updateErr.Status, updateErr)
 		return

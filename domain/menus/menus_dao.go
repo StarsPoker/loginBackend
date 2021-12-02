@@ -23,7 +23,29 @@ const (
 	queryUpdateOrderDownNext  = "UPDATE menus SET menu_order = (menu_order + 1) WHERE id = ?"
 	queryGetMaxOrder          = "SELECT count(*) as total from menus m where m.level = 1"
 	queryGetChildrenSearch    = "SELECT m.id, m.name, m.parent, m.link FROM menus m WHERE 2 = 2"
+	queryGetUserPermission    = "SELECT COUNT(*) FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? AND m.link = ? ORDER BY m.parent, m.menu_order"
 )
+
+func (pp *ProfilePermission) GetUserPermission() (*int, *rest_errors.RestErr) {
+	stmt, err := stars_mysql.Client.Prepare(queryGetUserPermission)
+
+	if err != nil {
+		logger.Error("error when trying to prepare total father statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	totalRows := stmt.QueryRow(pp.UserId, pp.MenuName)
+	var total int
+
+	if errTotalRows := totalRows.Scan(&total); errTotalRows != nil {
+		logger.Error("error when trying to get total father", errTotalRows)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	return &total, nil
+}
 
 func (me *Menu) GetMenus() ([]Menu, *rest_errors.RestErr) {
 

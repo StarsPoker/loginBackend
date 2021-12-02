@@ -8,6 +8,11 @@ type Profile struct {
 	Id          int64  `json:"id"`
 	Name        string `json:"name"`
 	ProfileCode string `json:"profile_code"`
+	Withdrawal  *int64 `json:"withdrawal"`
+	Expense     *int64 `json:"expense"`
+	Bot         *int64 `json:"bot"`
+	Closure     *int64 `json:"closure"`
+	Atendence   *int64 `json:"atendence"`
 }
 
 type Filter struct {

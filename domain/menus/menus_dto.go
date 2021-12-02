@@ -18,8 +18,17 @@ type Menu struct {
 	IdRelation    int64   `json:"id_relation"`
 }
 
+type Permission struct {
+	Permission int `json:"permission"`
+}
+
+type ProfilePermission struct {
+	MenuName string `json:"menu_name"`
+	UserId   int64  `json:"user_id"`
+}
+
 type MaxOrder struct {
-	MaxOrder int64 `json:"max_order"`
+	MaxOrder int `json:"max_order"`
 }
 
 func (m *Menu) Validate() *rest_errors.RestErr {

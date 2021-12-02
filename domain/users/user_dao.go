@@ -20,7 +20,9 @@ const (
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created, instance_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ?, instance_id = ? WHERE id = ?"
+	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ?, instance_id = ?, name = ? WHERE id = ?"
+	queryUpdateUserName         = "UPDATE users SET name = ? WHERE id = ?"
+	queryUpdateUserEmail        = "UPDATE users SET email = ? WHERE id = ?"
 	queryChangePassword         = "UPDATE users SET password = ? WHERE id = ?"
 	queryDeleteUser             = "DELETE FROM users WHERE id = ?"
 )
@@ -239,10 +241,52 @@ func (user *User) Update() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	_, updateErr := stmt.Exec(user.Email, user.Status, user.Role, user.InstanceId, user.Id)
+	_, updateErr := stmt.Exec(user.Email, user.Status, user.Role, user.InstanceId, user.Name, user.Id)
 
 	if updateErr != nil {
 		logger.Error("error when trying to update user", updateErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (user *User) UpdateUserName() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryUpdateUserName)
+
+	if err != nil {
+		logger.Error("error when trying to prepare update username statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(user.Name, user.Id)
+
+	if updateErr != nil {
+		logger.Error("error when trying to update username", updateErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (user *User) UpdateUserEmail() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryUpdateUserEmail)
+
+	if err != nil {
+		logger.Error("error when trying to prepare update useremail statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(user.Email, user.Id)
+
+	if updateErr != nil {
+		logger.Error("error when trying to update useremail", updateErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
 
