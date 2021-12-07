@@ -15,6 +15,7 @@ func mapMenusRoutes(api *gin.RouterGroup) {
 	menusGroup.GET("/children_search/:search", menus.MenusController.GetChildrenSearch)
 	menusGroup.GET("/menus/:profile_father", menus.MenusController.GetMenus)
 	menusGroup.GET("/childrens", menus.MenusController.GetChildrens)
+	menusGroup.GET("/profiles_relation/:menu_id", menus.MenusController.GetProfilesRelation)
 	menusGroup.POST("", menus.MenusController.InsertMenu)
 	menusGroup.GET("/build_menu", menus.MenusController.BuildMenu)
 	menusGroup.GET("/profile_permission/:menu_name", menus.MenusController.ProfilePermission)
