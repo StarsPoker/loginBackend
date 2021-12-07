@@ -27,6 +27,13 @@ type ProfilePermission struct {
 	UserId   int64  `json:"user_id"`
 }
 
+type ProfileRelation struct {
+	MenuId      int    `json:"profile_id"`
+	MenuName    string `json:"profile_name"`
+	HasRelation int    `json:"has_relation"`
+	IdRelation  *int   `json:"id_relation"`
+}
+
 type MaxOrder struct {
 	MaxOrder int `json:"max_order"`
 }

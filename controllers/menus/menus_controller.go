@@ -25,6 +25,7 @@ type MenusInterface interface {
 	ChangeOrderUpMenu(c *gin.Context)
 	ChangeOrderDownMenu(c *gin.Context)
 	GetChildrenSearch(c *gin.Context)
+	GetProfilesRelation(c *gin.Context)
 }
 
 type menusController struct {
@@ -256,4 +257,23 @@ func (cont *menusController) GetChildrenSearch(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, menuList)
+}
+
+func (cont *menusController) GetProfilesRelation(c *gin.Context) {
+	menuIdParam := c.Param("menu_id")
+	menuId, menuErr := strconv.ParseInt(menuIdParam, 10, 64)
+
+	if menuErr != nil {
+		restErr := rest_errors.NewBadRequestError("menu id should be a number")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	profilesRelation, getErr := services.MenusService.GetProfilesRelation(menuId)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, profilesRelation)
 }

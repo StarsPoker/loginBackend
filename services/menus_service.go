@@ -25,6 +25,7 @@ type menusInterface interface {
 	BuildMenu(int64) ([]profiles.BuildMenu, *rest_errors.RestErr)
 	ProfilePermission(int64, string) (*menus.Permission, *rest_errors.RestErr)
 	GetChildrenSearch(search string) (menus.Menus, *rest_errors.RestErr)
+	GetProfilesRelation(menuId int64) ([]menus.ProfileRelation, *rest_errors.RestErr)
 }
 
 func (s *menusService) BuildMenu(acessToken int64) ([]profiles.BuildMenu, *rest_errors.RestErr) {
@@ -205,6 +206,16 @@ func (s *menusService) ChangeOrderDownMenu(m menus.Menu) (*menus.Menu, *rest_err
 func (s *menusService) GetChildrenSearch(search string) (menus.Menus, *rest_errors.RestErr) {
 	dao := &menus.Menus{}
 	menus, err := dao.GetChildrenSearch(search)
+	if err != nil {
+		return nil, err
+	}
+
+	return menus, nil
+}
+
+func (s *menusService) GetProfilesRelation(menuId int64) ([]menus.ProfileRelation, *rest_errors.RestErr) {
+	dao := &menus.Menus{}
+	menus, err := dao.GetProfilesRelation(menuId)
 	if err != nil {
 		return nil, err
 	}
