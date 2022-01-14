@@ -7,6 +7,7 @@ import (
 
 	"github.com/StarsPoker/loginBackend/utils/mysql_utils"
 
+	"github.com/StarsPoker/loginBackend/consts"
 	"github.com/StarsPoker/loginBackend/datasources/mysql/stars_mysql"
 	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -14,7 +15,7 @@ import (
 
 const (
 	errorNoRows                 = "no rows in result set"
-	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
+	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, IF (u.password = ?, 1, 0) AS default_password FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
 	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
@@ -188,10 +189,10 @@ func (user *User) GetUser() *rest_errors.RestErr {
 	}
 	defer stmt.Close()
 
-	result := stmt.QueryRow(user.Id)
+	result := stmt.QueryRow(consts.DEFAULT_ENCRYPTED_PASSWORD, user.Id)
 
 	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
-		&user.InstanceId); getErr != nil {
+		&user.InstanceId, &user.DefaultPassword); getErr != nil {
 		logger.Error("error when trying to get user", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
