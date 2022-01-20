@@ -1,1 +1,7 @@
 ./loginBackend.exe
+docker-compose.yaml
+Dockerfile
+dump
+.go.mod
+.go.sum
+.env
