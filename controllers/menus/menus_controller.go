@@ -19,11 +19,13 @@ type MenusInterface interface {
 	GetMenus(c *gin.Context)
 	GetChildrens(c *gin.Context)
 	BuildMenu(c *gin.Context)
+	ProfilePermission(c *gin.Context)
 	DeleteMenu(c *gin.Context)
 	UpdateMenu(c *gin.Context)
 	ChangeOrderUpMenu(c *gin.Context)
 	ChangeOrderDownMenu(c *gin.Context)
 	GetChildrenSearch(c *gin.Context)
+	GetProfilesRelation(c *gin.Context)
 }
 
 type menusController struct {
@@ -225,6 +227,27 @@ func (cont *menusController) BuildMenu(c *gin.Context) {
 	c.JSON(http.StatusOK, menus)
 }
 
+func (cont *menusController) ProfilePermission(c *gin.Context) {
+	token := c.Request.Header["Authorization"][0]
+	at, tokenErr := services.AccessTokenService.GetById(token)
+	if tokenErr != nil {
+		err := rest_errors.NewBadRequestError("Invalid access token")
+		c.JSON(err.Status, err)
+		return
+	}
+
+	menuNameParam := c.Param("menu_name")
+	menuName := "/" + menuNameParam
+
+	permission, getErr := services.MenusService.ProfilePermission(at.UserId, menuName)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, permission)
+}
+
 func (cont *menusController) GetChildrenSearch(c *gin.Context) {
 	search := c.Param("search")
 
@@ -234,4 +257,23 @@ func (cont *menusController) GetChildrenSearch(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, menuList)
+}
+
+func (cont *menusController) GetProfilesRelation(c *gin.Context) {
+	menuIdParam := c.Param("menu_id")
+	menuId, menuErr := strconv.ParseInt(menuIdParam, 10, 64)
+
+	if menuErr != nil {
+		restErr := rest_errors.NewBadRequestError("menu id should be a number")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	profilesRelation, getErr := services.MenusService.GetProfilesRelation(menuId)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, profilesRelation)
 }

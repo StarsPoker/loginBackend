@@ -23,7 +23,30 @@ const (
 	queryUpdateOrderDownNext  = "UPDATE menus SET menu_order = (menu_order + 1) WHERE id = ?"
 	queryGetMaxOrder          = "SELECT count(*) as total from menus m where m.level = 1"
 	queryGetChildrenSearch    = "SELECT m.id, m.name, m.parent, m.link FROM menus m WHERE 2 = 2"
+	queryGetUserPermission    = "SELECT COUNT(*) FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? AND m.link = ? ORDER BY m.parent, m.menu_order"
+	queryGetProfilesRelation  = "SELECT p.id, p.name, pm.id as id_relation, IF(m.name IS NULL,0, 1) as has_relation FROM profiles p LEFT JOIN profile_menus pm ON pm.id_profile = p.id AND pm.id_menu = ? LEFT JOIN menus m ON m.id = pm.id_menu  WHERE p.profile_code < 100"
 )
+
+func (pp *ProfilePermission) GetUserPermission() (*int, *rest_errors.RestErr) {
+	stmt, err := stars_mysql.Client.Prepare(queryGetUserPermission)
+
+	if err != nil {
+		logger.Error("error when trying to prepare total father statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	totalRows := stmt.QueryRow(pp.UserId, pp.MenuName)
+	var total int
+
+	if errTotalRows := totalRows.Scan(&total); errTotalRows != nil {
+		logger.Error("error when trying to get total father", errTotalRows)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+
+	return &total, nil
+}
 
 func (me *Menu) GetMenus() ([]Menu, *rest_errors.RestErr) {
 
@@ -126,7 +149,7 @@ func (m *Menu) GetMenu() *rest_errors.RestErr {
 	result := stmt.QueryRow(m.Id)
 
 	if getErr := result.Scan(&m.Id, &m.Name, &m.Icon, &m.Link, &m.Parent, &m.Level, &m.Order); getErr != nil {
-		logger.Error("error when trying to get bank (menu)", getErr)
+		logger.Error("error when trying to get menu", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
 
@@ -348,6 +371,36 @@ func (menu *Menus) GetChildrenSearch(search string) ([]Menu, *rest_errors.RestEr
 			return nil, mysql_utils.ParseError(err)
 		}
 		results = append(results, menu)
+	}
+
+	return results, nil
+}
+
+func (menu *Menus) GetProfilesRelation(menuId int64) ([]ProfileRelation, *rest_errors.RestErr) {
+
+	stmt, err := stars_mysql.Client.Prepare(queryGetProfilesRelation)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get profilesRelation statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query(menuId)
+	if getErr != nil {
+		logger.Error("error when trying to get profilesRelation", getErr)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer rows.Close()
+
+	results := make([]ProfileRelation, 0)
+	for rows.Next() {
+		var p ProfileRelation
+
+		if err := rows.Scan(&p.MenuId, &p.MenuName, &p.IdRelation, &p.HasRelation); err != nil {
+			return nil, mysql_utils.ParseError(err)
+		}
+		results = append(results, p)
 	}
 
 	return results, nil

@@ -32,6 +32,7 @@ type profilesInterface interface {
 	CreateProfileMenuFather(profiles.ProfileMenu) (*profiles.ProfileMenu, *rest_errors.RestErr)
 	UpdateProfileUser(profiles.ProfileUser) (*profiles.ProfileUser, *rest_errors.RestErr)
 	UpdateProfile(profiles.Profile) (*profiles.Profile, *rest_errors.RestErr)
+	UpdateParam(profiles.Profile) (*profiles.Profile, *rest_errors.RestErr)
 	DeleteProfile(p profiles.Profile) *rest_errors.RestErr
 	DeleteProfileUser(p profiles.ProfileUser) *rest_errors.RestErr
 	DeleteProfileRoute(p profiles.ProfileRoute) *rest_errors.RestErr
@@ -117,6 +118,31 @@ func (s *profilesService) UpdateProfile(p profiles.Profile) (*profiles.Profile, 
 	current.Id = p.Id
 
 	if err := current.Update(); err != nil {
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+func (s *profilesService) UpdateParam(p profiles.Profile) (*profiles.Profile, *rest_errors.RestErr) {
+	current, err := s.GetProfile(p.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.Withdrawal != nil {
+		current.Withdrawal = p.Withdrawal
+	} else if p.Expense != nil {
+		current.Expense = p.Expense
+	} else if p.Bot != nil {
+		current.Bot = p.Bot
+	} else if p.Atendence != nil {
+		current.Atendence = p.Atendence
+	} else if p.Closure != nil {
+		current.Closure = p.Closure
+	}
+
+	if err := current.UpdateParam(); err != nil {
 		return nil, err
 	}
 

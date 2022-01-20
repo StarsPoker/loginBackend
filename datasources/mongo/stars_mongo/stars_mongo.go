@@ -31,6 +31,7 @@ func GetSession() (*mgo.Session, error) {
 	if port == "" {
 		port = "27017"
 	}
+
 	if globalSession == nil {
 		var err error
 		globalSession, err = mgo.Dial(username + ":" + password + "@" + host + ":" + port)

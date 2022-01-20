@@ -13,10 +13,11 @@ import (
 const (
 	errorNoRows               = "no rows in result set"
 	queryDeleteProfile        = "DELETE from profiles WHERE id = ?"
-	queryGetProfile           = "SELECT id, name, profile_code FROM profiles WHERE id = ?"
+	queryGetProfile           = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence FROM profiles WHERE id = ?"
 	queryGetProfiles          = "SELECT p.id, p.name, p.profile_code FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryInsertProfile        = "INSERT INTO profiles (name, profile_code) VALUES (?, ?)"
 	queryUpdateProfile        = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
+	queryUpdateParam          = "UPDATE profiles SET withdrawal = ?, expense = ?, bot = ?, closure = ?, atendence = ? WHERE id = ?"
 	queryTotalProfiles        = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryGetProfileUsers      = "SELECT p.id, u.name, u.role, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
 	queryGetProfileRoutes     = "SELECT p.id, r.name, r.type, r.menu_id, m.name AS menu_string FROM routes r JOIN profile_routes p ON p.id_route = r.id JOIN menus m ON m.id = r.menu_id WHERE p.id_profile = ?"
@@ -104,7 +105,7 @@ func (p *Profile) GetProfile() *rest_errors.RestErr {
 
 	result := stmt.QueryRow(p.Id)
 
-	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode); getErr != nil {
+	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence); getErr != nil {
 		logger.Error("error when trying to get bank", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
@@ -439,6 +440,27 @@ func (p *Profile) Update() *rest_errors.RestErr {
 	defer stmt.Close()
 
 	_, updateErr := stmt.Exec(&p.Name, &p.ProfileCode, &p.Id)
+
+	if updateErr != nil {
+		logger.Error("error when trying to update profile", updateErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	return nil
+}
+
+func (p *Profile) UpdateParam() *rest_errors.RestErr {
+
+	stmt, err := stars_mysql.Client.Prepare(queryUpdateParam)
+
+	if err != nil {
+		logger.Error("error when trying to prepare update profile statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(&p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.Id)
 
 	if updateErr != nil {
 		logger.Error("error when trying to update profile", updateErr)

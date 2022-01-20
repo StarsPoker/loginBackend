@@ -18,6 +18,7 @@ type UserControllerInterface interface {
 	getUserId(string) (int64, *rest_errors.RestErr)
 	CreateUser(*gin.Context)
 	UpdateUser(*gin.Context)
+	UpdateUserEdit(*gin.Context)
 	DeleteUser(c *gin.Context)
 	GetUser(c *gin.Context)
 	GetUsers(c *gin.Context)
@@ -69,6 +70,31 @@ func (cont *userController) UpdateUser(c *gin.Context) {
 	user.Id = userId
 
 	result, updateErr := services.UsersService.UpdateUser(user)
+	if updateErr != nil {
+		c.JSON(updateErr.Status, updateErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
+}
+
+func (cont *userController) UpdateUserEdit(c *gin.Context) {
+	userId, idErr := UserController.getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	var user users.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	user.Id = userId
+
+	result, updateErr := services.UsersService.UpdateUserEdit(user)
 	if updateErr != nil {
 		c.JSON(updateErr.Status, updateErr)
 		return
@@ -138,20 +164,6 @@ func (cont *userController) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
-func buildFilter(c *gin.Context) *users.Filter {
-	var filter users.Filter
-
-	filter.Role = c.Query("role")
-	filter.Name = c.Query("name")
-	filter.Email = c.Query("email")
-	filter.Club = c.Query("instance_id")
-	filter.Status = c.Query("status")
-	filter.SortBy = c.Query("sort_by")
-	filter.SortDesc = c.Query("sort_desc")
-
-	return &filter
-}
-
 func (cont *userController) GetUsers(c *gin.Context) {
 
 	pageParam := c.Query("page")
@@ -193,4 +205,19 @@ func (cont *userController) GetAttendants(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, userList)
+}
+
+func buildFilter(c *gin.Context) *users.Filter {
+	var filter users.Filter
+
+	filter.Role = c.Query("role")
+	filter.Name = c.Query("name")
+	filter.Email = c.Query("email")
+	filter.Club = c.Query("instance_id")
+	filter.Status = c.Query("status")
+	filter.DefaultPassword = c.Query("default_password")
+	filter.SortBy = c.Query("sort_by")
+	filter.SortDesc = c.Query("sort_desc")
+
+	return &filter
 }
