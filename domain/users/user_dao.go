@@ -14,16 +14,16 @@ import (
 
 const (
 	errorNoRows                 = "no rows in result set"
-	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
+	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, u.default_password FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
-	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
+	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, u.default_password, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
 	queryFindByEmailAndPassword = "SELECT id, name, email, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
-	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created, instance_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	queryInsertUser             = "INSERT INTO users (name, email, password, role, status, date_created, instance_id, default_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ?, instance_id = ?, name = ? WHERE id = ?"
 	queryUpdateUserName         = "UPDATE users SET name = ? WHERE id = ?"
 	queryUpdateUserEmail        = "UPDATE users SET email = ? WHERE id = ?"
-	queryChangePassword         = "UPDATE users SET password = ? WHERE id = ?"
+	queryChangePassword         = "UPDATE users SET password = ?, default_password = 0 WHERE id = ?"
 	queryDeleteUser             = "DELETE FROM users WHERE id = ?"
 )
 
@@ -53,6 +53,10 @@ func buildQuery(query *string, queryTotal *string, filter *Filter) {
 
 	if filter.Status != "" {
 		concatQuery = concatQuery + " AND u.status = " + filter.Status
+	}
+
+	if filter.DefaultPassword != "" {
+		concatQuery = concatQuery + " AND u.default_password = " + filter.DefaultPassword
 	}
 
 	if concatQuery != "" {
@@ -137,7 +141,7 @@ func (user *User) GetUsers(page int, itemsPerPage int, filter *Filter) ([]User, 
 	for rows.Next() {
 		var user User
 		if err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
-			&user.InstanceId, &user.InstanceName); err != nil {
+			&user.InstanceId, &user.DefaultPassword, &user.InstanceName); err != nil {
 			return nil, nil, mysql_utils.ParseError(err)
 		}
 
@@ -191,7 +195,7 @@ func (user *User) GetUser() *rest_errors.RestErr {
 	result := stmt.QueryRow(user.Id)
 
 	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
-		&user.InstanceId); getErr != nil {
+		&user.InstanceId, &user.DefaultPassword); getErr != nil {
 		logger.Error("error when trying to get user", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
@@ -211,7 +215,7 @@ func (user *User) Save() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	insertResult, saveErr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Status, user.DateCreated, user.InstanceId)
+	insertResult, saveErr := stmt.Exec(user.Name, user.Email, user.Password, user.Role, user.Status, user.DateCreated, user.InstanceId, user.DefaultPassword)
 
 	if saveErr != nil {
 		logger.Error("error when trying to save user", saveErr)
@@ -294,6 +298,8 @@ func (user *User) UpdateUserEmail() *rest_errors.RestErr {
 }
 
 func (user *User) ChangePassword() *rest_errors.RestErr {
+
+	// Se o usuário já fez alguma alteração na senha, a query desta função mudará o valor de default_password para 0. Se não, o valor permanece como 1.
 
 	stmt, err := stars_mysql.Client.Prepare(queryChangePassword)
 

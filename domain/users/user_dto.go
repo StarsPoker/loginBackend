@@ -13,26 +13,28 @@ const (
 type Users []User
 
 type User struct {
-	Id           int64   `json:"id"`
-	Name         string  `json:"name"`
-	Email        string  `json:"email"`
-	Password     string  `json:"password"`
-	Role         int64   `json:"role"`
-	Status       int64   `json:"status"`
-	InstanceId   *string `json:"instance_id"`
-	InstanceName *string `json:"instance_name"`
-	DateCreated  string  `json:"date_created"`
-	OldPassword  string  `json:"old_password"`
+	Id              int64   `json:"id"`
+	Name            string  `json:"name"`
+	Email           string  `json:"email"`
+	Password        string  `json:"password"`
+	Role            int64   `json:"role"`
+	Status          int64   `json:"status"`
+	InstanceId      *string `json:"instance_id"`
+	InstanceName    *string `json:"instance_name"`
+	DateCreated     string  `json:"date_created"`
+	OldPassword     string  `json:"old_password"`
+	DefaultPassword int64   `json:"default_password"`
 }
 
 type Filter struct {
-	Role     string `json:"role"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Club     string `json:"id_instance"`
-	Status   string `json:"status"`
-	SortBy   string `json:"sort_by"`
-	SortDesc string `json:"sort_desc"`
+	Role            string `json:"role"`
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	Club            string `json:"id_instance"`
+	Status          string `json:"status"`
+	DefaultPassword string `json:"default_password"`
+	SortBy          string `json:"sort_by"`
+	SortDesc        string `json:"sort_desc"`
 }
 
 type ChangePassword struct {

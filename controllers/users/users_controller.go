@@ -164,20 +164,6 @@ func (cont *userController) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
-func buildFilter(c *gin.Context) *users.Filter {
-	var filter users.Filter
-
-	filter.Role = c.Query("role")
-	filter.Name = c.Query("name")
-	filter.Email = c.Query("email")
-	filter.Club = c.Query("instance_id")
-	filter.Status = c.Query("status")
-	filter.SortBy = c.Query("sort_by")
-	filter.SortDesc = c.Query("sort_desc")
-
-	return &filter
-}
-
 func (cont *userController) GetUsers(c *gin.Context) {
 
 	pageParam := c.Query("page")
@@ -219,4 +205,19 @@ func (cont *userController) GetAttendants(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, userList)
+}
+
+func buildFilter(c *gin.Context) *users.Filter {
+	var filter users.Filter
+
+	filter.Role = c.Query("role")
+	filter.Name = c.Query("name")
+	filter.Email = c.Query("email")
+	filter.Club = c.Query("instance_id")
+	filter.Status = c.Query("status")
+	filter.DefaultPassword = c.Query("default_password")
+	filter.SortBy = c.Query("sort_by")
+	filter.SortDesc = c.Query("sort_desc")
+
+	return &filter
 }
