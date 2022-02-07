@@ -17,11 +17,6 @@ type PrivateUser struct {
 	Status          int64   `json:"status"`
 	DateCreated     string  `json:"date_created"`
 	DefaultPassword int64   `json:"default_password"`
-	Withdrawal      int64   `json:"withdrawal"`
-	Expense         int64   `json:"expense"`
-	Bot             int64   `json:"bot"`
-	Closure         int64   `json:"closure"`
-	Atendence       int64   `json:"atendence"`
 }
 
 func (users Users) Marshall(isPublic bool) []interface{} {
@@ -53,10 +48,5 @@ func (user *User) Marshall(isPublic bool) interface{} {
 		InstanceName:    user.InstanceName,
 		DateCreated:     user.DateCreated,
 		DefaultPassword: user.DefaultPassword,
-		Withdrawal:      user.Withdrawal,
-		Expense:         user.Expense,
-		Bot:             user.Bot,
-		Closure:         user.Closure,
-		Atendence:       user.Atendence,
 	}
 }

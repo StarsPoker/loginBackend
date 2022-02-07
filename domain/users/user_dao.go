@@ -14,7 +14,7 @@ import (
 
 const (
 	errorNoRows                 = "no rows in result set"
-	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, u.default_password, p.withdrawal as p_withdrawal, p.expense as p_expense, p.bot as p_bot, p.closure as p_closure, p.atendence as p_atendence FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
+	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, u.default_password FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
 	queryGetUsers               = "SELECT u.id, u.name, u.email, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, u.default_password, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
@@ -195,7 +195,7 @@ func (user *User) GetUser() *rest_errors.RestErr {
 	result := stmt.QueryRow(user.Id)
 
 	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
-		&user.InstanceId, &user.DefaultPassword, &user.Withdrawal, &user.Expense, &user.Bot, &user.Closure, &user.Atendence); getErr != nil {
+		&user.InstanceId, &user.DefaultPassword); getErr != nil {
 		logger.Error("error when trying to get user", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}

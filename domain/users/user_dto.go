@@ -24,11 +24,6 @@ type User struct {
 	DateCreated     string  `json:"date_created"`
 	OldPassword     string  `json:"old_password"`
 	DefaultPassword int64   `json:"default_password"`
-	Withdrawal      int64   `json:"withdrawal"`
-	Expense         int64   `json:"expense"`
-	Bot             int64   `json:"bot"`
-	Closure         int64   `json:"closure"`
-	Atendence       int64   `json:"atendence"`
 }
 
 type Filter struct {
