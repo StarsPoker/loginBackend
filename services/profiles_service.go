@@ -23,6 +23,7 @@ type profilesInterface interface {
 	GetProfileUsers(int, int, *profiles.Filter, int64) (profiles.Users, *int, *rest_errors.RestErr)
 	GetProfileRoutes(int, int, *profiles.Filter, int64) (profiles.Routes, *int, *rest_errors.RestErr)
 	GetProfileUsersAdds(int, int, *profiles.Filter, int64) (profiles.Users, *rest_errors.RestErr)
+	GetProfilePermissions(string) (*profiles.Profile, *rest_errors.RestErr)
 	GetProfileAttendants(search string, profileId int64) (profiles.Users, *rest_errors.RestErr)
 	GetProfileRoutesAdds(search string, profileId int64) (profiles.Routes, *rest_errors.RestErr)
 	CreateProfile(profiles.Profile) (*profiles.Profile, *rest_errors.RestErr)
@@ -140,6 +141,8 @@ func (s *profilesService) UpdateParam(p profiles.Profile) (*profiles.Profile, *r
 		current.Atendence = p.Atendence
 	} else if p.Closure != nil {
 		current.Closure = p.Closure
+	} else if p.FinishWithdrawal != nil {
+		current.FinishWithdrawal = p.FinishWithdrawal
 	}
 
 	if err := current.UpdateParam(); err != nil {
@@ -210,6 +213,16 @@ func (s *profilesService) GetProfileRoutesAdds(search string, profileId int64) (
 	}
 
 	return profiles, nil
+}
+
+func (s *profilesService) GetProfilePermissions(profileId string) (*profiles.Profile, *rest_errors.RestErr) {
+
+	result := &profiles.Profile{ProfileCode: profileId}
+	if err := result.GetProfilePermissions(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (s *profilesService) CreateProfileUser(profileToSave profiles.ProfileUser) (*profiles.ProfileUser, *rest_errors.RestErr) {
