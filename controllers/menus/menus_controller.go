@@ -19,6 +19,7 @@ type MenusInterface interface {
 	GetMenus(c *gin.Context)
 	GetChildrens(c *gin.Context)
 	BuildMenu(c *gin.Context)
+	BuildMenuSearch(c *gin.Context)
 	ProfilePermission(c *gin.Context)
 	DeleteMenu(c *gin.Context)
 	UpdateMenu(c *gin.Context)
@@ -219,6 +220,26 @@ func (cont *menusController) BuildMenu(c *gin.Context) {
 	}
 
 	menus, getErr := services.MenusService.BuildMenu(at.UserId)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, menus)
+}
+
+func (cont *menusController) BuildMenuSearch(c *gin.Context) {
+	token := c.Request.Header["Authorization"][0]
+	at, tokenErr := services.AccessTokenService.GetById(token)
+	if tokenErr != nil {
+		err := rest_errors.NewBadRequestError("Invalid access token")
+		c.JSON(err.Status, err)
+		return
+	}
+
+	menuName := c.Param("menu_name")
+
+	menus, getErr := services.MenusService.BuildMenuSearch(at.UserId, menuName)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 		return

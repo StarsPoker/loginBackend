@@ -11,37 +11,39 @@ import (
 )
 
 const (
-	errorNoRows               = "no rows in result set"
-	queryDeleteProfile        = "DELETE from profiles WHERE id = ?"
-	queryGetProfile           = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence FROM profiles WHERE id = ?"
-	queryGetProfiles          = "SELECT p.id, p.name, p.profile_code FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
-	queryInsertProfile        = "INSERT INTO profiles (name, profile_code) VALUES (?, ?)"
-	queryUpdateProfile        = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
-	queryUpdateParam          = "UPDATE profiles SET withdrawal = ?, expense = ?, bot = ?, closure = ?, atendence = ? WHERE id = ?"
-	queryTotalProfiles        = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
-	queryGetProfileUsers      = "SELECT p.id, u.name, u.role, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryGetProfileRoutes     = "SELECT p.id, r.name, r.type, r.menu_id, m.name AS menu_string FROM routes r JOIN profile_routes p ON p.id_route = r.id JOIN menus m ON m.id = r.menu_id WHERE p.id_profile = ?"
-	queryGetProfileUsersAdds  = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user from profile_users where id_profile = ?)"
-	queryTotalProfileUsers    = "SELECT COUNT(*) as TOTAL FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
-	queryTotalProfileRoutes   = "SELECT COUNT(*) as TOTAL FROM routes r JOIN profile_routes p ON p.id_route = r.id WHERE p.id_profile = ?"
-	queryGetProfileAttendants = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user FROM profile_users where id_profile = ?)"
-	queryGetProfileRoutesAdds = "SELECT id, name, type, menu_id FROM routes r where r.id not in(select id_route FROM profile_routes where id_profile = ?)"
-	queryInsertProfileUser    = "INSERT INTO profile_users (id_profile, id_user) VALUES (?, ?)"
-	queryInsertProfileRoute   = "INSERT INTO profile_routes (id_profile, id_route) VALUES (?, ?)"
-	queryUpdateProfileUser    = "UPDATE profile_users SET id_profile = ? WHERE id = ?"
-	queryDeleteProfileUser    = "DELETE FROM profile_users WHERE id = ?"
-	queryDeleteProfileRoute   = "DELETE FROM profile_routes WHERE id = ?"
-	queryDeleteRoutesRelation = "DELETE profile_routes FROM profile_routes JOIN routes r ON profile_routes.id_route = r.id WHERE r.menu_id = ? AND profile_routes.id_profile = ?"
-	querySaveRoutesRelation   = "INSERT INTO profile_routes (id_route, id_profile) SELECT r.id, p.id FROM routes r JOIN profiles p ON p.id = ? WHERE menu_id = ?"
-	queryDeleteProfileMenu    = "DELETE FROM profile_menus WHERE id = ?"
-	queryGetProfileUser       = "SELECT id, id_user, id_profile FROM profile_users WHERE id_user = ?"
-	queryGetProfileUser2      = "SELECT id, id_user, id_profile FROM profile_users WHERE id = ?"
-	queryGetProfileRoute      = "SELECT id, id_route, id_profile FROM profile_routes WHERE id = ?"
-	queryGetProfileMenu       = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id = ?"
-	queryGetProfileMenuFather = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id_menu = ? and id_profile = ?"
-	queryInsertProfileMenu    = "INSERT INTO profile_menus (id_menu, id_profile) VALUES (?, ?)"
-	queryTotalProfileMenu     = "SELECT count(*) AS total FROM profile_menus WHERE id_menu = ? AND id_profile = ?"
-	queryGetProfileRelation   = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? ORDER BY m.parent, m.menu_order"
+	errorNoRows                   = "no rows in result set"
+	queryDeleteProfile            = "DELETE from profiles WHERE id = ?"
+	queryGetProfile               = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence FROM profiles WHERE id = ?"
+	queryGetProfiles              = "SELECT p.id, p.name, p.profile_code FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
+	queryInsertProfile            = "INSERT INTO profiles (name, profile_code) VALUES (?, ?)"
+	queryUpdateProfile            = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
+	queryUpdateParam              = "UPDATE profiles SET withdrawal = ?, expense = ?, bot = ?, closure = ?, atendence = ? WHERE id = ?"
+	queryTotalProfiles            = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
+	queryGetProfileUsers          = "SELECT p.id, u.name, u.role, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
+	queryGetProfileRoutes         = "SELECT p.id, r.name, r.type, r.menu_id, m.name AS menu_string FROM routes r JOIN profile_routes p ON p.id_route = r.id JOIN menus m ON m.id = r.menu_id WHERE p.id_profile = ?"
+	queryGetProfileUsersAdds      = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user from profile_users where id_profile = ?)"
+	queryTotalProfileUsers        = "SELECT COUNT(*) as TOTAL FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
+	queryTotalProfileRoutes       = "SELECT COUNT(*) as TOTAL FROM routes r JOIN profile_routes p ON p.id_route = r.id WHERE p.id_profile = ?"
+	queryGetProfileAttendants     = "SELECT id, name, role, status, (select id_profile from profile_users where id_user = u.id) FROM users u where u.id not in(select id_user FROM profile_users where id_profile = ?)"
+	queryGetProfileRoutesAdds     = "SELECT id, name, type, menu_id FROM routes r where r.id not in(select id_route FROM profile_routes where id_profile = ?)"
+	queryInsertProfileUser        = "INSERT INTO profile_users (id_profile, id_user) VALUES (?, ?)"
+	queryInsertProfileRoute       = "INSERT INTO profile_routes (id_profile, id_route) VALUES (?, ?)"
+	queryUpdateProfileUser        = "UPDATE profile_users SET id_profile = ? WHERE id = ?"
+	queryDeleteProfileUser        = "DELETE FROM profile_users WHERE id = ?"
+	queryDeleteProfileRoute       = "DELETE FROM profile_routes WHERE id = ?"
+	queryDeleteRoutesRelation     = "DELETE profile_routes FROM profile_routes JOIN routes r ON profile_routes.id_route = r.id WHERE r.menu_id = ? AND profile_routes.id_profile = ?"
+	querySaveRoutesRelation       = "INSERT INTO profile_routes (id_route, id_profile) SELECT r.id, p.id FROM routes r JOIN profiles p ON p.id = ? WHERE menu_id = ?"
+	queryDeleteProfileMenu        = "DELETE FROM profile_menus WHERE id = ?"
+	queryGetProfileUser           = "SELECT id, id_user, id_profile FROM profile_users WHERE id_user = ?"
+	queryGetProfileUser2          = "SELECT id, id_user, id_profile FROM profile_users WHERE id = ?"
+	queryGetProfileRoute          = "SELECT id, id_route, id_profile FROM profile_routes WHERE id = ?"
+	queryGetProfileMenu           = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id = ?"
+	queryGetProfileMenuFather     = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id_menu = ? and id_profile = ?"
+	queryInsertProfileMenu        = "INSERT INTO profile_menus (id_menu, id_profile) VALUES (?, ?)"
+	queryTotalProfileMenu         = "SELECT count(*) AS total FROM profile_menus WHERE id_menu = ? AND id_profile = ?"
+	queryGetProfileRelation       = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? ORDER BY m.parent, m.menu_order"
+	queryGetProfileRelationSearch = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ?"
+	queryGetMenuFather            = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? AND m.id = ? ORDER BY m.parent, m.menu_order"
 )
 
 func (p *Profile) GetProfileRelation() ([]BuildMenu, *rest_errors.RestErr) {
@@ -64,6 +66,63 @@ func (p *Profile) GetProfileRelation() ([]BuildMenu, *rest_errors.RestErr) {
 	for rows.Next() {
 		var bm BuildMenu
 
+		if err := rows.Scan(&bm.Id, &bm.Description, &bm.Icon, &bm.Link, &bm.Parent, &bm.Level); err != nil {
+			return nil, mysql_utils.ParseError(err)
+		}
+		results = append(results, bm)
+	}
+
+	return results, nil
+}
+
+func (p *Profile) GetProfileRelationSearch(menuName string) ([]BuildMenu, *rest_errors.RestErr) {
+	stmt, err := stars_mysql.Client.Prepare(queryGetProfileRelationSearch + " AND m.name LIKE '" + menuName + "%' ORDER BY m.parent, m.menu_order")
+
+	if err != nil {
+		logger.Error("error when trying to prepare get menus statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query(p.Id)
+	if getErr != nil {
+		logger.Error("error when trying to get attendances", getErr)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer rows.Close()
+
+	results := make([]BuildMenu, 0)
+	for rows.Next() {
+		var bm BuildMenu
+
+		if err := rows.Scan(&bm.Id, &bm.Description, &bm.Icon, &bm.Link, &bm.Parent, &bm.Level); err != nil {
+			return nil, mysql_utils.ParseError(err)
+		}
+		results = append(results, bm)
+	}
+
+	return results, nil
+}
+
+func (p *Profile) GetMenuFather(menuId int64) ([]BuildMenu, *rest_errors.RestErr) {
+	stmt, err := stars_mysql.Client.Prepare(queryGetMenuFather)
+
+	if err != nil {
+		logger.Error("error when trying to prepare get menus statement", err)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	rows, getErr := stmt.Query(p.Id, menuId)
+	if getErr != nil {
+		logger.Error("error when trying to get attendances", getErr)
+		return nil, rest_errors.NewInternalServerError("database error")
+	}
+	defer rows.Close()
+
+	results := make([]BuildMenu, 0)
+	for rows.Next() {
+		var bm BuildMenu
 		if err := rows.Scan(&bm.Id, &bm.Description, &bm.Icon, &bm.Link, &bm.Parent, &bm.Level); err != nil {
 			return nil, mysql_utils.ParseError(err)
 		}
