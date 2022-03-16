@@ -32,6 +32,7 @@ type ProfileInterface interface {
 	GetProfileUsers(c *gin.Context)
 	GetProfileRoutes(c *gin.Context)
 	GetProfileUsersAdds(c *gin.Context)
+	GetProfilePermissions(c *gin.Context)
 	GetProfileAttendants(c *gin.Context)
 	GetProfileRoutesAdds(c *gin.Context)
 	UpdateProfileUser(c *gin.Context)
@@ -435,6 +436,17 @@ func (cont *profileController) GetProfileUsersAdds(c *gin.Context) {
 	usersResponse.Users = result
 
 	c.JSON(http.StatusOK, usersResponse)
+}
+
+func (cont *profileController) GetProfilePermissions(c *gin.Context) {
+
+	result, getErr := services.ProfilesService.GetProfilePermissions(c.Param("profile_id"))
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 func (cont *profileController) GetProfileAttendants(c *gin.Context) {

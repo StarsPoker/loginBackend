@@ -41,6 +41,7 @@ func mapProfileRoutes(api *gin.RouterGroup) {
 	profileGroup.GET("/:profile_id/profile_attendants/:search", profiles.ProfileController.GetProfileAttendants)
 	profileGroup.GET("/:profile_id/profile_routesAdds/:search", profiles.ProfileController.GetProfileRoutesAdds)
 	profileGroup.GET("/:profile_id/usersadds", profiles.ProfileController.GetProfileUsersAdds)
+	profileGroup.GET("/:profile_id/permissions", profiles.ProfileController.GetProfilePermissions)
 	profileGroup.GET("/:profile_id/users", profiles.ProfileController.GetProfileUsers)
 	profileGroup.GET("/:profile_id/routes", profiles.ProfileController.GetProfileRoutes)
 	profileGroup.GET("/:profile_id", profiles.ProfileController.GetProfile)
