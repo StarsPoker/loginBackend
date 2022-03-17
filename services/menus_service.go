@@ -23,6 +23,7 @@ type menusInterface interface {
 	ChangeOrderDownMenu(menus.Menu) (*menus.Menu, *rest_errors.RestErr)
 	DeleteMenu(menus.Menu) *rest_errors.RestErr
 	BuildMenu(int64) ([]profiles.BuildMenu, *rest_errors.RestErr)
+	BuildMenuSearch(int64, string) ([]profiles.BuildMenu, *rest_errors.RestErr)
 	ProfilePermission(int64, string) (*menus.Permission, *rest_errors.RestErr)
 	GetChildrenSearch(search string) (menus.Menus, *rest_errors.RestErr)
 	GetProfilesRelation(menuId int64) ([]menus.ProfileRelation, *rest_errors.RestErr)
@@ -50,6 +51,62 @@ func (s *menusService) BuildMenu(acessToken int64) ([]profiles.BuildMenu, *rest_
 					hs := true
 					buildMenus[a].HasSubGroup = &hs
 					buildMenus[a].Menus = append(buildMenus[a].Menus, profile)
+				}
+			}
+		}
+	}
+
+	return buildMenus, nil
+}
+
+func (s *menusService) BuildMenuSearch(acessToken int64, menuSearch string) ([]profiles.BuildMenu, *rest_errors.RestErr) {
+
+	profileBusca := &profiles.Profile{Id: acessToken}
+
+	profileRelation, err := profileBusca.GetProfileRelationSearch(menuSearch)
+	if err != nil {
+		return nil, err
+	}
+
+	// se for pai {
+	//	  procuro se ja existe
+	// }
+	// se for filho {
+	//    procuro o pai {
+	//  	 se tem pai {
+	//       	coloco o filho no pai
+	//   	 } se nao tem pai {
+	//          coloco o pai e depois o filho no pai
+	//       }
+	//    }
+
+	buildMenus := make([]profiles.BuildMenu, 0)
+	for _, profile := range profileRelation {
+		if profile.Parent != nil {
+			hasFather := 0
+			for a, father := range buildMenus {
+				if *father.Id == *profile.Parent {
+					hs := true
+					buildMenus[a].HasSubGroup = &hs
+					buildMenus[a].Menus = append(buildMenus[a].Menus, profile)
+					hasFather = 1
+				}
+			}
+			if hasFather == 0 {
+				menuFather, menuFatherErr := profileBusca.GetMenuFather(*profile.Parent)
+				if menuFatherErr != nil {
+					return nil, menuFatherErr
+				}
+				hs := false
+				menuFather[0].HasSubGroup = &hs
+				buildMenus = append(buildMenus, menuFather[0])
+				for a, father := range buildMenus {
+					if *father.Id == *profile.Parent {
+						hs := true
+						buildMenus[a].HasSubGroup = &hs
+						buildMenus[a].Menus = append(buildMenus[a].Menus, profile)
+						hasFather = 1
+					}
 				}
 			}
 		}

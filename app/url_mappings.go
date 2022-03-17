@@ -18,6 +18,7 @@ func mapMenusRoutes(api *gin.RouterGroup) {
 	menusGroup.GET("/profiles_relation/:menu_id", menus.MenusController.GetProfilesRelation)
 	menusGroup.POST("", menus.MenusController.InsertMenu)
 	menusGroup.GET("/build_menu", menus.MenusController.BuildMenu)
+	menusGroup.GET("/build_menu_search/:menu_name", menus.MenusController.BuildMenuSearch)
 	menusGroup.GET("/profile_permission/:menu_name", menus.MenusController.ProfilePermission)
 	menusGroup.DELETE("/:menu_id", menus.MenusController.DeleteMenu)
 	menusGroup.PUT("/update/:menu_id", menus.MenusController.UpdateMenu)
