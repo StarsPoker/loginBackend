@@ -39,18 +39,29 @@ func (s *menusService) BuildMenu(acessToken int64) ([]profiles.BuildMenu, *rest_
 	}
 
 	buildMenus := make([]profiles.BuildMenu, 0)
-	for i, profile := range profileRelation {
+	for _, profile := range profileRelation {
 		if profile.Parent == nil {
 			hs := false
 			profile.HasSubGroup = &hs
 			buildMenus = append(buildMenus, profile)
-			i++
-		} else {
+		} else if profile.Level == 2 {
 			for a, father := range buildMenus {
 				if *father.Id == *profile.Parent {
 					hs := true
 					buildMenus[a].HasSubGroup = &hs
 					buildMenus[a].Menus = append(buildMenus[a].Menus, profile)
+				}
+			}
+		} else if profile.Level == 3 {
+			for i, menu := range buildMenus {
+				if len(menu.Menus) > 0 {
+					for j, subMenu := range menu.Menus {
+						if *subMenu.Id == *profile.Parent {
+							verd := true
+							buildMenus[i].Menus[j].HasSubGroup = &verd
+							buildMenus[i].Menus[j].Menus = append(buildMenus[i].Menus[j].Menus, profile)
+						}
+					}
 				}
 			}
 		}
@@ -68,21 +79,9 @@ func (s *menusService) BuildMenuSearch(acessToken int64, menuSearch string) ([]p
 		return nil, err
 	}
 
-	// se for pai {
-	//	  procuro se ja existe
-	// }
-	// se for filho {
-	//    procuro o pai {
-	//  	 se tem pai {
-	//       	coloco o filho no pai
-	//   	 } se nao tem pai {
-	//          coloco o pai e depois o filho no pai
-	//       }
-	//    }
-
 	buildMenus := make([]profiles.BuildMenu, 0)
 	for _, profile := range profileRelation {
-		if profile.Parent != nil {
+		if profile.Level == 2 {
 			hasFather := 0
 			for a, father := range buildMenus {
 				if *father.Id == *profile.Parent {
@@ -97,6 +96,7 @@ func (s *menusService) BuildMenuSearch(acessToken int64, menuSearch string) ([]p
 				if menuFatherErr != nil {
 					return nil, menuFatherErr
 				}
+
 				hs := false
 				menuFather[0].HasSubGroup = &hs
 				buildMenus = append(buildMenus, menuFather[0])
@@ -107,6 +107,52 @@ func (s *menusService) BuildMenuSearch(acessToken int64, menuSearch string) ([]p
 						buildMenus[a].Menus = append(buildMenus[a].Menus, profile)
 						hasFather = 1
 					}
+				}
+			}
+		} else if profile.Level == 3 {
+			itsok := 0
+			for a, grandFather := range buildMenus {
+				if len(grandFather.Menus) > 0 {
+					for b, father := range grandFather.Menus {
+						if *father.Id == *profile.Parent {
+							hs := true
+							buildMenus[a].HasSubGroup = &hs
+							buildMenus[a].Menus[b].HasSubGroup = &hs
+							buildMenus[a].Menus[b].Menus = append(buildMenus[a].Menus[b].Menus, profile)
+							itsok = 1
+						}
+					}
+				}
+			}
+			if itsok == 0 {
+				itsok2 := 0
+				menuFather, menuFatherErr := profileBusca.GetMenuFather(*profile.Parent)
+				if menuFatherErr != nil {
+					return nil, menuFatherErr
+				}
+
+				for i, father := range buildMenus {
+					if *father.Id == *menuFather[0].Parent {
+						hs := true
+						buildMenus[i].HasSubGroup = &hs
+						menuFather[0].HasSubGroup = &hs
+						menuFather[0].Menus = append(menuFather[0].Menus, profile)
+						buildMenus[i].Menus = append(buildMenus[i].Menus, menuFather[0])
+						itsok2 = 1
+					}
+				}
+
+				if itsok2 == 0 {
+					menuGrandFather, menuGrandFatherErr := profileBusca.GetMenuFather(*menuFather[0].Parent)
+					if menuGrandFatherErr != nil {
+						return nil, menuGrandFatherErr
+					}
+					hs := true
+					menuGrandFather[0].HasSubGroup = &hs
+					menuFather[0].HasSubGroup = &hs
+					menuFather[0].Menus = append(menuFather[0].Menus, profile)
+					menuGrandFather[0].Menus = append(menuGrandFather[0].Menus, menuFather[0])
+					buildMenus = append(buildMenus, menuGrandFather[0])
 				}
 			}
 		}

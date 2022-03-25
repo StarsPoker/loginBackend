@@ -43,7 +43,7 @@ const (
 	queryGetProfilePermissions    = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence, finish_withdrawal FROM profiles WHERE profile_code = ?"
 	queryTotalProfileMenu         = "SELECT count(*) AS total FROM profile_menus WHERE id_menu = ? AND id_profile = ?"
 	queryGetProfileRelation       = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? ORDER BY m.parent, m.menu_order"
-	queryGetProfileRelationSearch = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ?"
+	queryGetProfileRelationSearch = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? AND m.level != 1"
 	queryGetMenuFather            = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? AND m.id = ? ORDER BY m.parent, m.menu_order"
 )
 
