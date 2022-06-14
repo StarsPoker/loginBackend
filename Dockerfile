@@ -4,9 +4,9 @@ WORKDIR /app
 
 COPY ./ /app
 
-RUN go mod tidy
-
-RUN go get github.com/githubnemo/CompileDaemon
+RUN go mod tidy \
+    && go get github.com/githubnemo/CompileDaemon \
+    && go install github.com/githubnemo/CompileDaemon
 
 EXPOSE 8079
 
