@@ -42,7 +42,10 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		return
 	}
 
-	at, err := services.AccessTokenService.Create(accessTokenRequest)
+	host := c.Request.Host
+	client_ip := c.ClientIP()
+
+	at, err := services.AccessTokenService.Create(accessTokenRequest, host, client_ip)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return

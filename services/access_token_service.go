@@ -18,7 +18,7 @@ type accessTokenService struct {
 
 type AccessTokenServiceInterface interface {
 	GetById(string) (*access_token.AccessToken, *rest_errors.RestErr)
-	Create(accessTokenRequest access_token.AccessTokenRequest) (*access_token.AccessToken, *rest_errors.RestErr)
+	Create(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*access_token.AccessToken, *rest_errors.RestErr)
 	ValidateAccessToken(string) *rest_errors.RestErr
 	Delete(string) *rest_errors.RestErr
 }
@@ -37,7 +37,7 @@ func (s *accessTokenService) GetById(accessTokenId string) (*access_token.Access
 	return accessToken, nil
 }
 
-func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest) (*access_token.AccessToken, *rest_errors.RestErr) {
+func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*access_token.AccessToken, *rest_errors.RestErr) {
 
 	if err := accessTokenRequest.Validate(); err != nil {
 		return nil, err
@@ -55,6 +55,8 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 
 	at := access_token.GetNewAccessToken(user.Id, user.Role)
 	at.Generate()
+	at.UserIp = host
+	at.UserClientIp = client_ip
 
 	err := access_token.Create(at)
 	if err != nil {
