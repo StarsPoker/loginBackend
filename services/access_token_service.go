@@ -1,9 +1,11 @@
 package services
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
+	"github.com/StarsPoker/loginBackend/domain/profiles"
 	"github.com/StarsPoker/loginBackend/domain/users"
 	"github.com/StarsPoker/loginBackend/utils/crypto_utils.go"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -18,7 +20,7 @@ type accessTokenService struct {
 
 type AccessTokenServiceInterface interface {
 	GetById(string) (*access_token.AccessToken, *rest_errors.RestErr)
-	Create(accessTokenRequest access_token.AccessTokenRequest) (*access_token.AccessToken, *rest_errors.RestErr)
+	Create(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*access_token.AccessToken, *rest_errors.RestErr)
 	ValidateAccessToken(string) *rest_errors.RestErr
 	Delete(string) *rest_errors.RestErr
 }
@@ -37,7 +39,7 @@ func (s *accessTokenService) GetById(accessTokenId string) (*access_token.Access
 	return accessToken, nil
 }
 
-func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest) (*access_token.AccessToken, *rest_errors.RestErr) {
+func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*access_token.AccessToken, *rest_errors.RestErr) {
 
 	if err := accessTokenRequest.Validate(); err != nil {
 		return nil, err
@@ -55,6 +57,17 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 
 	at := access_token.GetNewAccessToken(user.Id, user.Role)
 	at.Generate()
+	at.UserIp = host
+	at.UserClientIp = client_ip
+
+	// get profile user
+	pUser := profiles.Profile{}
+	errGetProfileUser := pUser.GetProfileByUser(user.Id)
+	if errGetProfileUser != nil {
+		return nil, rest_errors.NewInternalServerError("Usuário não possui perfil de acesso associado")
+	}
+
+	at.Role, _ = strconv.ParseInt(pUser.ProfileCode, 10, 64)
 
 	err := access_token.Create(at)
 	if err != nil {

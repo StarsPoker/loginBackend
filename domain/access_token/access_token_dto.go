@@ -22,6 +22,8 @@ type AccessToken struct {
 	Expires         int64  `json:"expires" bson:"expires"`
 	LastInteraction int64  `json:"last_interaction" bson:"last_interaction"`
 	Status          int64  `json:"status" bson:"status"`
+	UserIp          string `json:"user_ip" bson:"user_ip"`
+	UserClientIp    string `json:"user_client_ip" bson:"user_client_ip"`
 }
 
 func (at *AccessToken) Validate() *rest_errors.RestErr {
