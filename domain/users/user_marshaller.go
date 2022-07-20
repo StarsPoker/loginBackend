@@ -13,6 +13,7 @@ type PrivateUser struct {
 	Email           string  `json:"email"`
 	InstanceId      *string `json:"instance_id"`
 	InstanceName    *string `json:"instance_name"`
+	Contact         *string `json:"contact"`
 	Role            int64   `json:"role"`
 	Status          int64   `json:"status"`
 	DateCreated     string  `json:"date_created"`
@@ -44,6 +45,7 @@ func (user *User) Marshall(isPublic bool) interface{} {
 		Email:           user.Email,
 		Role:            user.Role,
 		Status:          user.Status,
+		Contact:         user.Contact,
 		InstanceId:      user.InstanceId,
 		InstanceName:    user.InstanceName,
 		DateCreated:     user.DateCreated,

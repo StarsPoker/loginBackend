@@ -16,6 +16,7 @@ type User struct {
 	Id              int64   `json:"id"`
 	Name            string  `json:"name"`
 	Email           string  `json:"email"`
+	Contact         *string `json:"contact"`
 	Password        string  `json:"password"`
 	Role            int64   `json:"role"`
 	Status          int64   `json:"status"`
