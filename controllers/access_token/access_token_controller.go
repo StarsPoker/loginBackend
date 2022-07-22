@@ -3,6 +3,7 @@ package access_token
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
 	"github.com/StarsPoker/loginBackend/services"
@@ -43,9 +44,11 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 	}
 
 	host := c.Request.Host
+	hostSTR := strings.Split(host, ":")
+	hostTRIM := hostSTR[0]
 	client_ip := c.ClientIP()
 
-	at, err := services.AccessTokenService.Create(accessTokenRequest, host, client_ip)
+	at, err := services.AccessTokenService.Create(accessTokenRequest, hostTRIM, client_ip)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
