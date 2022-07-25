@@ -57,7 +57,7 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 
 	at := access_token.GetNewAccessToken(user.Id, user.Role)
 	at.Generate()
-	at.UserIp = host
+	at.UserHost = host
 	at.UserClientIp = client_ip
 
 	// get profile user
@@ -85,6 +85,13 @@ func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_err
 
 	if err != nil {
 		return rest_errors.NewUnauthorizedError("invalid access token")
+	}
+
+	var user users.User
+	if accessToken.UserHost == "localhost" || strings.Contains(accessToken.UserHost, "192.168.1") || strings.Contains(accessToken.UserHost, "192.168.2") {
+		if err := user.ValidateExternalAccess(accessToken.UserId); err != nil {
+			return rest_errors.NewUnauthorizedError("blocked external access")
+		}
 	}
 
 	expired := accessToken.IsExpired()
