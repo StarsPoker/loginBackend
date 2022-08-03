@@ -151,6 +151,7 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 
 	at := access_token.GetNewAccessToken(user.Id, user.Role)
 	at.Generate()
+	at.UserHost = host
 	at.UserClientIp = client_ip
 	err = access_token.Create(at)
 	if err != nil {
