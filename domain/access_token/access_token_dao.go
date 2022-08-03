@@ -80,3 +80,18 @@ func UpdateLastInteraction(accessTokenId string) *rest_errors.RestErr {
 
 	return nil
 }
+
+func DeleteExpiredAccesTokens() *rest_errors.RestErr {
+	session, _ := stars_mongo.GetSession()
+	defer session.Close()
+
+	col := session.DB(database).C(collection)
+
+	err := col.Remove(bson.M{"expires": bson.M{"$lte": date_utils.GetNow().Unix()}})
+
+	if err != nil {
+		logger.Error("error when trying to delete a access_token", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+	return nil
+}
