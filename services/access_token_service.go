@@ -88,6 +88,13 @@ func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_err
 		return rest_errors.NewUnauthorizedError("invalid access token")
 	}
 
+	var user users.User
+	if accessToken.UserHost == "localhost" || strings.Contains(accessToken.UserHost, "192.168.1") || strings.Contains(accessToken.UserHost, "192.168.2") {
+		if err := user.ValidateExternalAccess(accessToken.UserId); err != nil {
+			return rest_errors.NewUnauthorizedError("blocked external access")
+		}
+	}
+
 	expired := accessToken.IsExpired()
 	if expired {
 		_ = access_token.Delete(accessTokenId)

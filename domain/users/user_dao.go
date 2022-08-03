@@ -14,6 +14,7 @@ import (
 
 const (
 	errorNoRows                 = "no rows in result set"
+	queryGetExternalAccess      = "SELECT u.id, u.external_access FROM users u WHERE u.id = ?"
 	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, u.default_password FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
 	queryGetUsers               = "SELECT u.id, u.name, u.email, u.contact, u.password, u.role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, u.default_password, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
@@ -73,6 +74,28 @@ func buildQuery(query *string, queryTotal *string, filter *Filter) {
 		*query = *query + " ORDER BY u.status, u.instance_id"
 	}
 	*query = *query + " LIMIT ?, ?"
+}
+
+func (user *User) ValidateExternalAccess(user_id int64) *rest_errors.RestErr {
+	stmt, err := stars_mysql.Client.Prepare(queryGetExternalAccess)
+	if err != nil {
+		logger.Error("error when trying to prepare get external access statement", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+	defer stmt.Close()
+
+	result := stmt.QueryRow(user_id)
+	if getErr := result.Scan(&user.Id, &user.ExternalAccess); getErr != nil {
+		logger.Error("error when trying to get user external access", getErr)
+		return rest_errors.NewInternalServerError("database error")
+	}
+
+	if user.ExternalAccess == 0 {
+		logger.Error("user with external access blocked", nil)
+		return rest_errors.NewInternalServerError("database error (external access blocked)")
+	}
+
+	return nil
 }
 
 func (user *User) FindByEmailAndPassword() *rest_errors.RestErr {
