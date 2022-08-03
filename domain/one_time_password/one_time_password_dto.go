@@ -36,7 +36,7 @@ func CheckAuth(otp *OneTimePassword, at access_token.AccessTokenRequest) (*OneTi
 	if otp.Code != at.ClientScret {
 		return nil, rest_errors.NewInternalServerError("invalid Token provided")
 	}
-	if otp.Expires > date_utils.GetNow().Unix() {
+	if date_utils.GetNow().Unix() > otp.Expires {
 		return nil, rest_errors.NewInternalServerError("Token expired")
 	}
 	return otp, nil
