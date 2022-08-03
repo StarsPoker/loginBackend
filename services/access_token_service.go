@@ -1,13 +1,15 @@
 package services
 
 import (
-	"strconv"
+	"fmt"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
-	"github.com/StarsPoker/loginBackend/domain/profiles"
+	"github.com/StarsPoker/loginBackend/domain/one_time_password"
 	"github.com/StarsPoker/loginBackend/domain/users"
-	"github.com/StarsPoker/loginBackend/utils/crypto_utils.go"
+
+	"github.com/StarsPoker/loginBackend/domain/chat_repository"
+	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
 )
 
@@ -20,9 +22,12 @@ type accessTokenService struct {
 
 type AccessTokenServiceInterface interface {
 	GetById(string) (*access_token.AccessToken, *rest_errors.RestErr)
-	Create(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*access_token.AccessToken, *rest_errors.RestErr)
+	Create(accessTokenRequest access_token.AccessTokenRequest) (*one_time_password.OneTimePassword, *rest_errors.RestErr)
 	ValidateAccessToken(string) *rest_errors.RestErr
 	Delete(string) *rest_errors.RestErr
+	CheckAuth(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr)
+	DeleteExpiredAccesTokens()
+	DeleteExpiredOneTimePasswords()
 }
 
 func (s *accessTokenService) GetById(accessTokenId string) (*access_token.AccessToken, *rest_errors.RestErr) {
@@ -39,7 +44,7 @@ func (s *accessTokenService) GetById(accessTokenId string) (*access_token.Access
 	return accessToken, nil
 }
 
-func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*access_token.AccessToken, *rest_errors.RestErr) {
+func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
 
 	if err := accessTokenRequest.Validate(); err != nil {
 		return nil, err
@@ -55,26 +60,22 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 		return nil, err
 	}
 
-	at := access_token.GetNewAccessToken(user.Id, user.Role)
-	at.Generate()
-	at.UserHost = host
-	at.UserClientIp = client_ip
+	var otp one_time_password.OneTimePassword
+	otp = otp.CreateOtp(user)
 
-	// get profile user
-	pUser := profiles.Profile{}
-	errGetProfileUser := pUser.GetProfileByUser(user.Id)
-	if errGetProfileUser != nil {
-		return nil, rest_errors.NewInternalServerError("Usuário não possui perfil de acesso associado")
-	}
+	err := one_time_password.Insert(otp)
 
-	at.Role, _ = strconv.ParseInt(pUser.ProfileCode, 10, 64)
-
-	err := access_token.Create(at)
 	if err != nil {
 		return nil, err
 	}
 
-	return &at, nil
+	if user.Contact != nil {
+		go chat_repository.SendWhatsappMessage(otp, user)
+	}
+	go chat_repository.SendMail(otp, user)
+
+	otp.Code = "anonimized"
+	return &otp, nil
 }
 
 func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_errors.RestErr {
@@ -113,4 +114,64 @@ func (s *accessTokenService) Delete(accessTokenId string) *rest_errors.RestErr {
 	}
 
 	return nil
+}
+
+func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
+
+	if err := accessTokenRequest.Validate(); err != nil {
+		return nil, err
+	}
+
+	user := &users.User{
+		Email:    accessTokenRequest.Username,
+		Password: crypto_utils.GetMd5(accessTokenRequest.Password),
+		Status:   users.StatusActive,
+	}
+
+	if err := user.FindByEmailAndPassword(); err != nil {
+		return nil, err
+	}
+	accessTokenRequest.ClientId = user.Id
+
+	otp, err := one_time_password.GetAuth(accessTokenRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	otp, err = one_time_password.CheckAuth(otp, accessTokenRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	rec := false //recursive calling
+	rec = one_time_password.DeleteAllById(*otp, rec)
+	if !rec {
+		return nil, nil
+	}
+
+	at := access_token.GetNewAccessToken(user.Id, user.Role)
+	at.Generate()
+	at.UserHost = host
+	at.UserClientIp = client_ip
+	err = access_token.Create(at)
+	if err != nil {
+		return nil, err
+	}
+	otp.AccessToken = at
+
+	return otp, nil
+}
+
+func (s *accessTokenService) DeleteExpiredAccesTokens() {
+	err := access_token.DeleteExpiredAccesTokens()
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (s *accessTokenService) DeleteExpiredOneTimePasswords() {
+	err := one_time_password.DeleteExpiredOneTimePasswords()
+	if err != nil {
+		fmt.Println(err)
+	}
 }

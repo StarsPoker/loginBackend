@@ -79,6 +79,7 @@ func mapOauthRoutes(api *gin.RouterGroup) {
 	oauthGroup.GET("/access_token/:access_token_id", access_token.AccessTokenController.GetById)
 	oauthGroup.POST("/access_token", access_token.AccessTokenController.Create)
 	oauthGroup.DELETE("/access_token/:access_token_id", access_token.AccessTokenController.Delete)
+	oauthGroup.POST("/access_token/check_auth", access_token.AccessTokenController.CheckAuth)
 }
 
 func mapUrls() {
@@ -94,4 +95,6 @@ func mapUrls() {
 	mapProfileRoutes(api)
 	mapMenusRoutes(api)
 	mapRoutesRoutes(api)
+
+	go access_token.AccessTokenController.DeleteExpiredTokens()
 }
