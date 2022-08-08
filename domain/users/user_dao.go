@@ -21,7 +21,7 @@ const (
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
 	queryFindByEmailAndPassword = "SELECT id, name, email, contact, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, password from users  WHERE email = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, contact, password, status, date_created, instance_id, default_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, instance_id = ?, name = ? WHERE id = ?"
+	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, instance_id = ?, name = ?, contact = ? WHERE id = ?"
 	queryUpdateUserName         = "UPDATE users SET name = ? WHERE id = ?"
 	queryUpdateUserEmail        = "UPDATE users SET email = ? WHERE id = ?"
 	queryChangePassword         = "UPDATE users SET password = ?, default_password = 0 WHERE id = ?"
@@ -266,7 +266,7 @@ func (user *User) Update() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	_, updateErr := stmt.Exec(user.Email, user.Status, user.InstanceId, user.Name, user.Id)
+	_, updateErr := stmt.Exec(user.Email, user.Status, user.InstanceId, user.Name, user.Contact, user.Id)
 
 	if updateErr != nil {
 		logger.Error("error when trying to update user", updateErr)
