@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/StarsPoker/loginBackend/utils/crypto_utils.go"
+	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
 )
@@ -22,6 +22,8 @@ type AccessToken struct {
 	Expires         int64  `json:"expires" bson:"expires"`
 	LastInteraction int64  `json:"last_interaction" bson:"last_interaction"`
 	Status          int64  `json:"status" bson:"status"`
+	UserHost        string `json:"user_host" bson:"user_host"`
+	UserClientIp    string `json:"user_client_ip" bson:"user_client_ip"`
 }
 
 func (at *AccessToken) Validate() *rest_errors.RestErr {
@@ -41,6 +43,7 @@ func (at *AccessToken) Validate() *rest_errors.RestErr {
 	if at.Expires <= 0 {
 		return rest_errors.NewBadRequestError("invalid expiration time")
 	}
+
 	return nil
 }
 

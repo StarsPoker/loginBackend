@@ -16,6 +16,7 @@ type User struct {
 	Id              int64   `json:"id"`
 	Name            string  `json:"name"`
 	Email           string  `json:"email"`
+	Contact         *string `json:"contact"`
 	Password        string  `json:"password"`
 	Role            int64   `json:"role"`
 	Status          int64   `json:"status"`
@@ -24,6 +25,7 @@ type User struct {
 	DateCreated     string  `json:"date_created"`
 	OldPassword     string  `json:"old_password"`
 	DefaultPassword int64   `json:"default_password"`
+	ExternalAccess  int64   `json:"external_access"`
 }
 
 type Filter struct {

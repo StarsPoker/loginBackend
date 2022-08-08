@@ -1,6 +1,8 @@
 package app
 
 import (
+	"strings"
+
 	"github.com/StarsPoker/loginBackend/services"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
 	"github.com/gin-gonic/gin"
@@ -15,7 +17,7 @@ const (
 func OAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		route := c.FullPath()
-		if route != "/api/oauth/access_token" || c.Request.Method != "POST" {
+		if !strings.Contains(route, "/api/oauth/access_token") {
 			if len(c.Request.Header["Authorization"]) > 0 {
 				token := c.Request.Header["Authorization"][0]
 				if err := services.AccessTokenService.ValidateAccessToken(token); err != nil {

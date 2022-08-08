@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/StarsPoker/loginBackend/domain/users"
-	"github.com/StarsPoker/loginBackend/utils/crypto_utils.go"
+	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
 	//"net/http"
 )

@@ -18,8 +18,11 @@ type AccessTokenRequest struct {
 	Password string `json:"password"`
 
 	// Used for client_credentials grant type
-	ClientId    string `json:"client_id"`
+	ClientId    int64  `json:"client_id"`
 	ClientScret string `json:"client_secret"`
+
+	// Used for grant otp searching
+	ClientKey string `json:"client_key"`
 }
 
 func (at *AccessTokenRequest) Validate() *rest_errors.RestErr {
@@ -39,7 +42,7 @@ func (at *AccessTokenRequest) Validate() *rest_errors.RestErr {
 		}
 		break
 	case grantTypeClientCredentials:
-		if at.ClientId == "" {
+		if at.ClientId == 0 {
 			return rest_errors.NewBadRequestError("Id do cliente deve ser informado")
 		}
 
