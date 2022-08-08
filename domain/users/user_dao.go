@@ -21,7 +21,7 @@ const (
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
 	queryFindByEmailAndPassword = "SELECT id, name, email, contact, role, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created from users WHERE email = ? AND password = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, contact, password, role, status, date_created, instance_id, default_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, role = ?, instance_id = ?, name = ? WHERE id = ?"
+	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, instance_id = ?, name = ? WHERE id = ?"
 	queryUpdateUserName         = "UPDATE users SET name = ? WHERE id = ?"
 	queryUpdateUserEmail        = "UPDATE users SET email = ? WHERE id = ?"
 	queryChangePassword         = "UPDATE users SET password = ?, default_password = 0 WHERE id = ?"
