@@ -51,13 +51,25 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 	}
 
 	user := &users.User{
-		Email:    accessTokenRequest.Username,
-		Password: crypto_utils.GetMd5(accessTokenRequest.Password),
-		Status:   users.StatusActive,
+		Email:  accessTokenRequest.Username,
+		Status: users.StatusActive,
 	}
 
 	if err := user.FindByEmailAndPassword(); err != nil {
 		return nil, err
+	}
+
+	if crypto_utils.GetMd5(accessTokenRequest.Password) != user.Password {
+		return nil, rest_errors.NewUnauthorizedError("invalid credentials")
+	}
+
+	errGetUser := user.GetUser()
+	if errGetUser != nil {
+		return nil, errGetUser
+	}
+
+	if user.Role == nil {
+		return nil, rest_errors.NewInternalServerError("Usuário não possui perfil de acesso associado")
 	}
 
 	var otp one_time_password.OneTimePassword
@@ -118,21 +130,6 @@ func (s *accessTokenService) Delete(accessTokenId string) *rest_errors.RestErr {
 
 func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
 
-	if err := accessTokenRequest.Validate(); err != nil {
-		return nil, err
-	}
-
-	user := &users.User{
-		Email:    accessTokenRequest.Username,
-		Password: crypto_utils.GetMd5(accessTokenRequest.Password),
-		Status:   users.StatusActive,
-	}
-
-	if err := user.FindByEmailAndPassword(); err != nil {
-		return nil, err
-	}
-	accessTokenRequest.ClientId = user.Id
-
 	otp, err := one_time_password.GetAuth(accessTokenRequest)
 	if err != nil {
 		return nil, err
@@ -143,13 +140,22 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 		return nil, err
 	}
 
+	user := &users.User{
+		Id: otp.UserId,
+	}
+
+	errGetUser := user.GetUser()
+	if errGetUser != nil {
+		return nil, errGetUser
+	}
+
 	rec := false //recursive calling
 	rec = one_time_password.DeleteAllById(*otp, rec)
 	if !rec {
 		return nil, nil
 	}
 
-	at := access_token.GetNewAccessToken(user.Id, user.Role)
+	at := access_token.GetNewAccessToken(user.Id, *user.Role)
 	at.Generate()
 	at.UserHost = host
 	at.UserClientIp = client_ip

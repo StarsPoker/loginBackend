@@ -36,13 +36,12 @@ func GetAuth(accessTokenRequest access_token.AccessTokenRequest) (*OneTimePasswo
 
 	otp := OneTimePassword{}
 	oneTimePasswordKey := accessTokenRequest.ClientKey
-	userId := accessTokenRequest.ClientId
 
 	session, _ := stars_mongo.GetSession()
 	defer session.Close()
 
 	col := session.DB(database).C(collection)
-	err := col.Find(bson.M{"key": oneTimePasswordKey, "user_id": userId}).One(&otp)
+	err := col.Find(bson.M{"key": oneTimePasswordKey}).One(&otp)
 
 	if err != nil {
 		logger.Error("error when trying to get a authentication", err)
