@@ -18,7 +18,7 @@ type User struct {
 	Email           string  `json:"email"`
 	Contact         *string `json:"contact"`
 	Password        string  `json:"password"`
-	Role            int64   `json:"role"`
+	Role            *int64  `json:"role"`
 	Status          int64   `json:"status"`
 	InstanceId      *string `json:"instance_id"`
 	InstanceName    *string `json:"instance_name"`

@@ -731,7 +731,7 @@ func (p *Profile) GetProfileUsers(page int, itemsPerPage int, filter *Filter, pr
 	results := make([]User, 0)
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.Id, &user.Name, &user.Role, &user.Status, &user.IdProfile); err != nil {
+		if err := rows.Scan(&user.Id, &user.Name, &user.Status, &user.IdProfile); err != nil {
 			return nil, nil, mysql_utils.ParseError(err)
 		}
 
@@ -829,7 +829,7 @@ func (p *Profile) GetProfileUsersAdds(page int, itemsPerPage int, filter *Filter
 	results := make([]User, 0)
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.Id, &user.Name, &user.Role, &user.Status, &user.IdProfile); err != nil {
+		if err := rows.Scan(&user.Id, &user.Name, &user.Status, &user.IdProfile); err != nil {
 			return nil, mysql_utils.ParseError(err)
 		}
 
@@ -880,7 +880,7 @@ func (user *User) GetProfileAttendants(search string, profileId int64) ([]User, 
 	results := make([]User, 0)
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.Id, &user.Name, &user.Role, &user.Status, &user.IdProfile); err != nil {
+		if err := rows.Scan(&user.Id, &user.Name, &user.Status, &user.IdProfile); err != nil {
 			return nil, mysql_utils.ParseError(err)
 		}
 		results = append(results, user)
