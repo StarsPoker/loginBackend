@@ -78,7 +78,6 @@ func (s *usersService) UpdateUser(user users.User) (*users.User, *rest_errors.Re
 	current.Status = user.Status
 	current.InstanceId = user.InstanceId
 	current.Name = user.Name
-
 	if err := current.Update(); err != nil {
 		return nil, err
 	}
