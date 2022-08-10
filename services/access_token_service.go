@@ -60,7 +60,7 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 	}
 
 	if crypto_utils.GetMd5(accessTokenRequest.Password) != user.Password {
-		return nil, rest_errors.NewUnauthorizedError("invalid credentials")
+		return nil, rest_errors.NewInternalServerError("invalid credentials")
 	}
 
 	errGetUser := user.GetUser()
