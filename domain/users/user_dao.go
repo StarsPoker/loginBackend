@@ -195,7 +195,7 @@ func (user *User) GetAttendants(search string) ([]User, *rest_errors.RestErr) {
 	results := make([]User, 0)
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.Id, &user.Name, &user.Status); err != nil {
+		if err := rows.Scan(&user.Id, &user.Name, &user.Role, &user.Status); err != nil {
 			return nil, mysql_utils.ParseError(err)
 		}
 		results = append(results, user)
