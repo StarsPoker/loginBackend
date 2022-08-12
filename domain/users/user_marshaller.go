@@ -31,10 +31,15 @@ func (users Users) Marshall(isPublic bool) []interface{} {
 
 func (user *User) Marshall(isPublic bool) interface{} {
 
+	role := int64(0)
+	if user.Role != nil {
+		role = *user.Role
+	}
+
 	if isPublic {
 		return PublicUser{
 			Name:   user.Name,
-			Role:   user.Role,
+			Role:   role,
 			Status: user.Status,
 		}
 	}
@@ -43,7 +48,7 @@ func (user *User) Marshall(isPublic bool) interface{} {
 		Id:              user.Id,
 		Name:            user.Name,
 		Email:           user.Email,
-		Role:            user.Role,
+		Role:            role,
 		Status:          user.Status,
 		Contact:         user.Contact,
 		InstanceId:      user.InstanceId,

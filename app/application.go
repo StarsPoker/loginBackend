@@ -24,7 +24,7 @@ func StartApplication() {
 	logger.Info("about to start the application ...")
 	mapUrls()
 
-	if stars_env == "production" {
+	if stars_env == "production" || stars_env == "homologation" {
 		router.RunTLS(":8079", stars_pem, stars_key)
 	} else {
 		router.Run(":8079")
