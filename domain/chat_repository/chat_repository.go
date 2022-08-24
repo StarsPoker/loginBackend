@@ -77,7 +77,7 @@ func SendMail(otp one_time_password.OneTimePassword, user *users.User) {
 	m.SetHeader("Subject", "Token de acesso ao GrupoSx")
 	m.SetBody("text/plain", content)
 
-	d := gomail.NewDialer("smtppro.zoho.com", 465, "ti@sxgrupo.com.br", "LafeZXgVTU")
+	d := gomail.NewDialer("smtppro.zoho.com", 465, "ti@sxgrupo.com.br", "LafeZXgVTU#671")
 
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
