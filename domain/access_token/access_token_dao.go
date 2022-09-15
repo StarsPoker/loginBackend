@@ -13,6 +13,7 @@ import (
 const (
 	database   = "stars"
 	collection = "access_token"
+	records_collection = "access_token_records"
 )
 
 func GetById(accessTokenId string) (*AccessToken, *rest_errors.RestErr) {
@@ -32,6 +33,21 @@ func GetById(accessTokenId string) (*AccessToken, *rest_errors.RestErr) {
 	}
 
 	return &at, nil
+}
+
+func CreateRecord(accessToken AccessToken) *rest_errors.RestErr {
+	session, _ := stars_mongo.GetSession()
+	defer session.Close()
+	
+	col := session.DB(database).C(records_collection)
+
+	err := col.Insert(&accessToken)
+	if err != nil {
+		logger.Error("error when trying to save access_token_record", err)
+		return rest_errors.NewInternalServerError("database error")
+	}
+	
+	return nil
 }
 
 func Create(accessToken AccessToken) *rest_errors.RestErr {

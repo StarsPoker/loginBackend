@@ -159,6 +159,13 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 	at.Generate()
 	at.UserHost = host
 	at.UserClientIp = client_ip
+	at.UserIpFront = accessTokenRequest.UserIpFront
+
+	err = access_token.CreateRecord(at)
+	if err != nil {
+		fmt.Println("Erro ao salvar o registro permanente access_token", err)
+	}
+
 	err = access_token.Create(at)
 	if err != nil {
 		return nil, err

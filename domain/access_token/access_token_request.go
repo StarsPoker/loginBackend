@@ -10,8 +10,9 @@ const (
 )
 
 type AccessTokenRequest struct {
-	GrantType string `json:"grant_type"`
-	Scope     string `json:"scope"`
+	GrantType 		string `json:"grant_type"`
+	Scope     		string `json:"scope"`
+	UserIpFront		string `json:"user_ip_front"`
 
 	// Used for password grant type
 	Username string `json:"username"`
