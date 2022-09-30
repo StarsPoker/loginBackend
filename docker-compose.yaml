@@ -1,11 +1,14 @@
 version: '3.8'
 services:
-  loginstars:
-    build: ./
+  loginsx:
+    build: 
+      context: ./
+      target: dev
     working_dir: /app
-    container_name: loginstars
+    container_name: loginsx
     ports:
       - "8079:8079"
+      - "40000:40000"
     env_file:
       - ../config/.env
     extra_hosts:

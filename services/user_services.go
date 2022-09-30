@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/StarsPoker/loginBackend/domain/users"
 	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -46,7 +48,9 @@ func (s *usersService) GetUsers(page int, itemsPerPage int, filter *users.Filter
 
 func (s *usersService) GetAttendants(search string) (users.Users, *rest_errors.RestErr) {
 	dao := &users.User{}
+	fmt.Println(dao)
 	users, err := dao.GetAttendants(search)
+	fmt.Println(users)
 	if err != nil {
 		return nil, err
 	}
