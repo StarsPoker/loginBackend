@@ -1,5 +1,9 @@
 project=loginsx
 up:
+	docker compose up
+upd:
+	docker compose up -d
+upbuild:
 	docker compose up -d --build
 up-prod: 
 	docker compose -f docker-compose.prod.yaml up --build -d
