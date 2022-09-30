@@ -6,8 +6,8 @@ up-prod:
 down:
 	docker compose down
 logs:
-	docker compose logs ${project}
+	docker logs ${project}
 logs-follow:
-	docker compose logs --follow ${project}
+	docker logs --follow ${project}
 clear-logs:
 	echo "" > $(docker inspect --format='{{.LogPath}}' ${project})
