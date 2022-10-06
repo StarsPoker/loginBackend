@@ -8,7 +8,7 @@ COPY ./ /app
 FROM base as dev
 
 ENV CGO_ENABLED 0
-COPY startScript.sh /build/startScript.sh
+COPY startScript.sh /app/startScript.sh
 
 RUN git clone https://github.com/go-delve/delve.git && \
     cd delve && \
