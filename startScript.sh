@@ -3,7 +3,9 @@
 # create directory for Delve logs, we use it to know that Delve
 # debugger is running
 port_debug=40000
+
 mkdir -p /tmp/dlv_log
+
 
 runServer() {
   echo Running server
@@ -40,15 +42,25 @@ killRunningServer() {
   fi
 }
 
-buildServer() {
+function buildServer() {
   echo Building server
-  go build -gcflags "all=-N -l" -o /server main.go
+
+  go build -o /server -gcflags -N -gcflags -l -buildvcs=false
+  return $?
 }
 
 rerunServer () {
   killRunningServer
   buildServer
-  runServer
+  resultBuild=$?
+  if [ $resultBuild -eq "0" ]; 
+  then
+    echo "Deu certo"
+    runServer
+  else
+    echo "Erro ao buildar"
+  fi
+ 
 }
 
 lockBuild() {
@@ -67,7 +79,7 @@ unlockBuild() {
 }
 
 # run the server for the first time
-runServer
+rerunServer
 
 inotifywait -e MODIFY -r -m /app |
   while read path action file; do
