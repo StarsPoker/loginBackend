@@ -37,6 +37,7 @@ type ProfileInterface interface {
 	GetProfileRoutesAdds(c *gin.Context)
 	UpdateProfileUser(c *gin.Context)
 	GetProfileUser(c *gin.Context)
+	GetProfileValidation(c *gin.Context)
 }
 
 type profileController struct {
@@ -73,6 +74,23 @@ func (cont *profileController) GetProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, withdrawal)
+}
+
+func (cont *profileController) GetProfileValidation(c *gin.Context) {
+
+	// profileId, idErr := cont.getProfileId(c.Param("profile_id"))
+	// if idErr != nil {
+	// 	c.JSON(idErr.Status, idErr)
+	// 	return
+	// }
+
+	validation, getErr := services.ProfilesService.GetProfileValidation(c.Param("profile_id"), c.Param("param_to_check"))
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, validation)
 }
 
 func (cont *profileController) GetProfileUser(c *gin.Context) {

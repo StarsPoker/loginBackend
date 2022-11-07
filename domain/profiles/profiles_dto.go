@@ -5,15 +5,16 @@ import "github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
 type Profiles []Profile
 
 type Profile struct {
-	Id               int64  `json:"id"`
-	Name             string `json:"name"`
-	ProfileCode      string `json:"profile_code"`
-	Withdrawal       *int64 `json:"withdrawal"`
-	Expense          *int64 `json:"expense"`
-	Bot              *int64 `json:"bot"`
-	Closure          *int64 `json:"closure"`
-	Atendence        *int64 `json:"atendence"`
-	FinishWithdrawal *int64 `json:"finish_withdrawal"`
+	Id                int64  `json:"id"`
+	Name              string `json:"name"`
+	ProfileCode       string `json:"profile_code"`
+	Withdrawal        *int64 `json:"withdrawal"`
+	Expense           *int64 `json:"expense"`
+	Bot               *int64 `json:"bot"`
+	Closure           *int64 `json:"closure"`
+	Atendence         *int64 `json:"atendence"`
+	FinishWithdrawal  *int64 `json:"finish_withdrawal"`
+	CreateManualOrder *int64 `json:"create_manual_order"`
 }
 
 type Filter struct {

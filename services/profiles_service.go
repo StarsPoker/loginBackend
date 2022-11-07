@@ -16,6 +16,7 @@ type profilesService struct {
 }
 
 type profilesInterface interface {
+	GetProfileValidation(string, string) (bool, *rest_errors.RestErr)
 	GetProfile(int64) (*profiles.Profile, *rest_errors.RestErr)
 	GetProfiles(int, int, *profiles.Filter, int64) (profiles.Profiles, *int, *rest_errors.RestErr)
 	GetProfileUser(int64) (*profiles.ProfileUser, *rest_errors.RestErr)
@@ -39,6 +40,63 @@ type profilesInterface interface {
 	DeleteProfileRoute(p profiles.ProfileRoute) *rest_errors.RestErr
 	DeleteProfileMenu(p profiles.ProfileMenu) *rest_errors.RestErr
 	DeleteProfileMenuFather(p profiles.ProfileMenu) *rest_errors.RestErr
+}
+
+func (s *profilesService) GetProfileValidation(profileId string, paramToCheck string) (bool, *rest_errors.RestErr) {
+
+	result := &profiles.Profile{ProfileCode: profileId}
+	if err := result.GetProfileValidation(); err != nil {
+		return false, err
+	}
+
+	switch paramToCheck {
+	case "withdrawal":
+		if *result.Withdrawal == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	case "expense":
+		if *result.Expense == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	case "bot":
+		if *result.Bot == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	case "closure":
+		if *result.Closure == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	case "atendence":
+		if *result.Atendence == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	case "finish_withdrawal":
+		if *result.FinishWithdrawal == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	case "create_manual_order":
+		if *result.CreateManualOrder == 1 {
+			return true, nil
+		} else {
+			break
+		}
+	default:
+		break
+	}
+
+	return false, nil
 }
 
 func (s *profilesService) GetProfile(profileId int64) (*profiles.Profile, *rest_errors.RestErr) {
@@ -143,6 +201,8 @@ func (s *profilesService) UpdateParam(p profiles.Profile) (*profiles.Profile, *r
 		current.Closure = p.Closure
 	} else if p.FinishWithdrawal != nil {
 		current.FinishWithdrawal = p.FinishWithdrawal
+	} else if p.CreateManualOrder != nil {
+		current.CreateManualOrder = p.CreateManualOrder
 	}
 
 	if err := current.UpdateParam(); err != nil {

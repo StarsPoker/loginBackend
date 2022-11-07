@@ -46,6 +46,7 @@ func mapProfileRoutes(api *gin.RouterGroup) {
 	profileGroup.GET("/:profile_id/routes", profiles.ProfileController.GetProfileRoutes)
 	profileGroup.GET("/:profile_id", profiles.ProfileController.GetProfile)
 	profileGroup.GET("", profiles.ProfileController.GetProfiles)
+	profileGroup.GET("/validate_permission/:profile_id/:param_to_check", profiles.ProfileController.GetProfileValidation)
 	profileGroup.POST("", profiles.ProfileController.CreateProfile)
 	profileGroup.POST("/user", profiles.ProfileController.CreateProfileUser)
 	profileGroup.POST("/route", profiles.ProfileController.CreateProfileRoute)
