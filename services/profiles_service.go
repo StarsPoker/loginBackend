@@ -143,6 +143,10 @@ func (s *profilesService) UpdateParam(p profiles.Profile) (*profiles.Profile, *r
 		current.Closure = p.Closure
 	} else if p.FinishWithdrawal != nil {
 		current.FinishWithdrawal = p.FinishWithdrawal
+	} else if p.MakeBlockedWithdrawal != nil {
+		current.MakeBlockedWithdrawal = p.MakeBlockedWithdrawal
+	} else if p.MakeAlertWithdrawal != nil {
+		current.MakeAlertWithdrawal = p.MakeAlertWithdrawal
 	}
 
 	if err := current.UpdateParam(); err != nil {
