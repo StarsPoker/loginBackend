@@ -24,6 +24,7 @@ type AccessToken struct {
 	Status          int64  `json:"status" bson:"status"`
 	UserHost        string `json:"user_host" bson:"user_host"`
 	UserClientIp    string `json:"user_client_ip" bson:"user_client_ip"`
+	UserIpFront     string `json:"user_ip_front" bson:"user_ip_front"`
 }
 
 func (at *AccessToken) Validate() *rest_errors.RestErr {
