@@ -13,11 +13,11 @@ import (
 const (
 	errorNoRows                   = "no rows in result set"
 	queryDeleteProfile            = "DELETE from profiles WHERE id = ?"
-	queryGetProfile               = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence, finish_withdrawal FROM profiles WHERE id = ?"
+	queryGetProfile               = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence, finish_withdrawal, make_blocked_withdrawal, make_alert_withdrawal FROM profiles WHERE id = ?"
 	queryGetProfiles              = "SELECT p.id, p.name, p.profile_code FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryInsertProfile            = "INSERT INTO profiles (name, profile_code) VALUES (?, ?)"
 	queryUpdateProfile            = "UPDATE profiles SET name = ?, profile_code = ? WHERE id = ?"
-	queryUpdateParam              = "UPDATE profiles SET withdrawal = ?, expense = ?, bot = ?, closure = ?, atendence = ?, finish_withdrawal = ? WHERE id = ?"
+	queryUpdateParam              = "UPDATE profiles SET withdrawal = ?, expense = ?, bot = ?, closure = ?, atendence = ?, finish_withdrawal = ?, make_blocked_withdrawal = ?, make_alert_withdrawal = ? WHERE id = ?"
 	queryTotalProfiles            = "SELECT COUNT(*) as TOTAL FROM profiles p LEFT JOIN users u ON u.id = ? WHERE 1 = 1 AND p.profile_code <= u.role"
 	queryGetProfileUsers          = "SELECT p.id, u.name, u.status, p.id_profile FROM users u JOIN profile_users p ON p.id_user = u.id WHERE p.id_profile = ?"
 	queryGetProfileRoutes         = "SELECT p.id, r.name, r.type, r.menu_id, m.name AS menu_string FROM routes r JOIN profile_routes p ON p.id_route = r.id JOIN menus m ON m.id = r.menu_id WHERE p.id_profile = ?"
@@ -40,7 +40,7 @@ const (
 	queryGetProfileMenu           = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id = ?"
 	queryGetProfileMenuFather     = "SELECT id, id_menu, id_profile FROM profile_menus WHERE id_menu = ? and id_profile = ?"
 	queryInsertProfileMenu        = "INSERT INTO profile_menus (id_menu, id_profile) VALUES (?, ?)"
-	queryGetProfilePermissions    = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence, finish_withdrawal FROM profiles WHERE profile_code = ?"
+	queryGetProfilePermissions    = "SELECT id, name, profile_code, withdrawal, expense, bot, closure, atendence, finish_withdrawal, make_blocked_withdrawal, make_alert_withdrawal FROM profiles WHERE profile_code = ?"
 	queryTotalProfileMenu         = "SELECT count(*) AS total FROM profile_menus WHERE id_menu = ? AND id_profile = ?"
 	queryGetProfileRelation       = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? ORDER BY m.parent, m.menu_order, m.name"
 	queryGetProfileRelationSearch = "SELECT m.id, m.name AS description, m.icon, m.link, m.parent, m.level FROM profile_users pu JOIN profile_menus pm ON pu.id_profile = pm.id_profile JOIN menus m ON pm.id_menu = m.id WHERE id_user = ? AND m.level != 1"
@@ -166,7 +166,7 @@ func (p *Profile) GetProfile() *rest_errors.RestErr {
 
 	result := stmt.QueryRow(p.Id)
 
-	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal); getErr != nil {
+	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal, &p.MakeBlockedWithdrawal, &p.MakeAlertWithdrawal); getErr != nil {
 		logger.Error("error when trying to get profile", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
@@ -310,7 +310,7 @@ func (p *Profile) GetProfileByUser(userId int64) *rest_errors.RestErr {
 
 	result := stmt.QueryRow(userId)
 
-	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal); getErr != nil {
+	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal, &p.MakeBlockedWithdrawal, &p.MakeAlertWithdrawal); getErr != nil {
 		logger.Error("error when trying to get profile by user", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
@@ -540,7 +540,7 @@ func (p *Profile) UpdateParam() *rest_errors.RestErr {
 
 	defer stmt.Close()
 
-	_, updateErr := stmt.Exec(&p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal, &p.Id)
+	_, updateErr := stmt.Exec(&p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal, &p.MakeBlockedWithdrawal, &p.MakeAlertWithdrawal, &p.Id)
 
 	if updateErr != nil {
 		logger.Error("error when trying to update profile", updateErr)
@@ -850,7 +850,7 @@ func (p *Profile) GetProfilePermissions() *rest_errors.RestErr {
 
 	result := stmt.QueryRow(p.ProfileCode)
 
-	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal); getErr != nil {
+	if getErr := result.Scan(&p.Id, &p.Name, &p.ProfileCode, &p.Withdrawal, &p.Expense, &p.Bot, &p.Closure, &p.Atendence, &p.FinishWithdrawal, &p.MakeBlockedWithdrawal, &p.MakeAlertWithdrawal); getErr != nil {
 		logger.Error("error when trying to get profile permission (GetProfilePermissions)", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}
