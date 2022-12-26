@@ -17,7 +17,7 @@ const (
 func OAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		route := c.FullPath()
-		if !strings.Contains(route, "/api/oauth/access_token") {
+		if !strings.Contains(route, "/oauth/access_token") {
 			if len(c.Request.Header["Authorization"]) > 0 {
 				token := c.Request.Header["Authorization"][0]
 				if err := services.AccessTokenService.ValidateAccessToken(token); err != nil {
