@@ -32,7 +32,7 @@ func (otp *OneTimePassword) CreateOtp(user *users.User) OneTimePassword {
 	otp.Code = crypto_utils.GetToken(MIN_TOKEN, MAX_TOKEN)
 	otp.Key = crypto_utils.GetMd5(fmt.Sprintf("at-%d-%s-ran", user.Id, otp.Code))
 	otp.UserId = user.Id
-	otp.Tries = 0
+	otp.Tries = 1
 
 	return *otp
 }
