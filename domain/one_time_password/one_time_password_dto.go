@@ -24,7 +24,7 @@ const (
 	MIN_TOKEN      = 1000
 	MAX_TOKEN      = 9999
 	TIME_TO_EXPIRE = 300
-	MAX_TRIES      = 5
+	MAX_TRIES      = 3
 )
 
 func (otp *OneTimePassword) CreateOtp(user *users.User) OneTimePassword {
