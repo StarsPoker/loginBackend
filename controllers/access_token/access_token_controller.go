@@ -3,6 +3,7 @@ package access_token
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
 	"github.com/StarsPoker/loginBackend/services"
@@ -11,6 +12,7 @@ import (
 )
 
 var (
+	stars_env                                  = os.Getenv("stars_env")
 	AccessTokenController AccessTokenInterface = &accessTokenController{}
 )
 
@@ -43,16 +45,25 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		c.JSON(restErr.Status, restErr)
 		return
 	}
+	if stars_env == "development" {
+		host := c.Request.Host
+		client_ip := c.ClientIP()
+		otp, err := services.AccessTokenService.CreateDevelopment(accessTokenRequest, host, client_ip)
+		if err != nil {
+			c.JSON(err.Status, err)
+			return
+		}
+		c.JSON(http.StatusOK, otp)
+	} else {
+		otp, err := services.AccessTokenService.Create(accessTokenRequest)
+		if err != nil {
+			c.JSON(err.Status, err)
+			return
+		}
+		fmt.Println("Created")
 
-	otp, err := services.AccessTokenService.Create(accessTokenRequest)
-	if err != nil {
-		c.JSON(err.Status, err)
-		return
+		c.JSON(http.StatusOK, otp)
 	}
-
-	fmt.Println("Created")
-
-	c.JSON(http.StatusOK, otp)
 }
 
 func (cont *accessTokenController) Delete(c *gin.Context) {

@@ -26,6 +26,7 @@ type AccessTokenServiceInterface interface {
 	ValidateAccessToken(string) *rest_errors.RestErr
 	Delete(string) *rest_errors.RestErr
 	CheckAuth(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr)
+	CreateDevelopment(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr)
 	DeleteExpiredAccesTokens()
 	DeleteExpiredOneTimePasswords()
 }
@@ -166,6 +167,35 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 	}
 	otp.AccessToken = at
 
+	return otp, nil
+}
+func (s *accessTokenService) CreateDevelopment(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
+	otp := &one_time_password.OneTimePassword{
+		AccessToken: access_token.AccessToken{
+			AccessToken: "",
+		},
+	}
+	user := &users.User{
+		Email:  accessTokenRequest.Username,
+		Status: users.StatusActive,
+	}
+
+	if err := user.FindByEmailAndPassword(); err != nil {
+		return nil, err
+	}
+
+	at := access_token.GetNewAccessToken(user.Id, *user.Role)
+	at.Generate()
+	at.UserHost = host
+	at.UserClientIp = client_ip
+	at.UserIpFront = accessTokenRequest.UserIpFront
+	err := access_token.Create(at)
+
+	if err != nil {
+		return nil, err
+	}
+
+	otp.AccessToken = at
 	return otp, nil
 }
 

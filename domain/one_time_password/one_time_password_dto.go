@@ -15,7 +15,7 @@ type OneTimePassword struct {
 	Code        string                   `json:"code" bson:"code"`
 	UserId      int64                    `json:"user_id" bson:"user_id"`
 	Expires     int64                    `json:"expires" bson:"expires"`
-	Role        int64                    `	json:"role" bson:"role"`
+	Role        int64                    `json:"role" bson:"role"`
 	AccessToken access_token.AccessToken `json:"access_token" bson:"access_token"`
 	Tries       int64                    `json:"tries" bson:"tries"`
 }
