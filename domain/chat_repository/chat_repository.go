@@ -87,14 +87,14 @@ func SendMail(otp one_time_password.OneTimePassword, user *users.User) {
 	content := fmt.Sprint(getSlice(), MESSAGE, otp.Code, "\n\nAtenciosamente, equipe do GrupoSx.")
 
 	m := gomail.NewMessage()
-
+	fmt.Println(host_email, port_email, user_email, password_email)
 	m.SetHeader("From", user_email)
 	m.SetHeader("To", user.Email)
 	m.SetHeader("Subject", "Token de acesso ao GrupoSx")
 	m.SetBody("text/plain", content)
 
 	port, _ := strconv.Atoi(port_email)
-
+	fmt.Println(host_email, port_email, port, user_email, password_email)
 	d := gomail.NewDialer(host_email, port, user_email, password_email)
 
 	// This is only needed when SSL/TLS certificate is not valid on server.
