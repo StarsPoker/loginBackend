@@ -1,10 +1,11 @@
 package users
 
 type PublicUser struct {
-	Name   string `json:"name"`
-	Role   int64  `json:"role"`
-	Status int64  `json:"status"`
-	Email  string `json:"email"`
+	Name          string  `json:"name"`
+	Role          int64   `json:"role"`
+	Status        int64   `json:"status"`
+	Email         string  `json:"email"`
+	ProfileAccess *string `json:"profile_access"`
 }
 
 type PrivateUser struct {
@@ -18,6 +19,7 @@ type PrivateUser struct {
 	Status          int64   `json:"status"`
 	DateCreated     string  `json:"date_created"`
 	DefaultPassword int64   `json:"default_password"`
+	ProfileAccess   *string `json:"profile_access"`
 }
 
 func (users Users) Marshall(isPublic bool) []interface{} {
@@ -55,5 +57,6 @@ func (user *User) Marshall(isPublic bool) interface{} {
 		InstanceName:    user.InstanceName,
 		DateCreated:     user.DateCreated,
 		DefaultPassword: user.DefaultPassword,
+		ProfileAccess:   user.ProfileAccess,
 	}
 }
