@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"os"
+	"strconv"
 
 	gomail "gopkg.in/mail.v2"
 
@@ -14,6 +16,20 @@ import (
 	"github.com/StarsPoker/loginBackend/domain/one_time_password"
 	"github.com/StarsPoker/loginBackend/domain/users"
 	"github.com/StarsPoker/loginBackend/logger"
+)
+
+const (
+	email_user     = "EMAIL_USER"
+	email_password = "EMAIL_PASSWORD"
+	email_host     = "EMAIL_HOST"
+	email_port     = "EMAIL_PORT"
+)
+
+var (
+	user_email     = os.Getenv(email_user)
+	password_email = os.Getenv(email_password)
+	host_email     = os.Getenv(email_host)
+	port_email     = os.Getenv(email_port)
 )
 
 const MESSAGE = " Use seu token para entrar no nosso site do GrupoSx e lembre-se de não compartilhar com outras pessoas. Seu token de acesso é: "
@@ -72,12 +88,14 @@ func SendMail(otp one_time_password.OneTimePassword, user *users.User) {
 
 	m := gomail.NewMessage()
 
-	m.SetHeader("From", "ti@sxgrupo.com.br")
+	m.SetHeader("From", user_email)
 	m.SetHeader("To", user.Email)
 	m.SetHeader("Subject", "Token de acesso ao GrupoSx")
 	m.SetBody("text/plain", content)
 
-	d := gomail.NewDialer("smtppro.zoho.com", 465, "ti@sxgrupo.com.br", "LafeZXgVTU")
+	port, _ := strconv.Atoi(port_email)
+
+	d := gomail.NewDialer(host_email, port, user_email, password_email)
 
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.

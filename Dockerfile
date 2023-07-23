@@ -1,13 +1,32 @@
-FROM golang:latest
+FROM golang:alpine3.14 as base
+RUN apk update && apk add bash inotify-tools && apk add git
 
 WORKDIR /app
 
 COPY ./ /app
 
-RUN go mod tidy \
-    && go get github.com/githubnemo/CompileDaemon \
-    && go install github.com/githubnemo/CompileDaemon
+FROM base as dev
+
+ENV CGO_ENABLED 0
+COPY startScript.sh /app/startScript.sh
+
+RUN git clone https://github.com/go-delve/delve.git && \
+    cd delve && \
+    go install github.com/go-delve/delve/cmd/dlv
+
+RUN go mod tidy 
+
+RUN go build -o /server -gcflags -N -gcflags -l
 
 EXPOSE 8079
+EXPOSE 40000
 
-ENTRYPOINT CompileDaemon --build="go build main.go" --command=./main
+ENTRYPOINT sh startScript.sh
+
+FROM base as prod
+
+RUN go mod tidy
+RUN go build -o /server
+EXPOSE 8079
+
+CMD ["/server"]

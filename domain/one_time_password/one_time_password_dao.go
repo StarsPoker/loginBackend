@@ -31,6 +31,20 @@ func Insert(otp OneTimePassword) *rest_errors.RestErr {
 
 	return nil
 }
+func UpdateConnectionTry(otp OneTimePassword) *rest_errors.RestErr {
+
+	err := DeleteByKey(otp)
+	if err != nil {
+		return err
+	}
+	otp.Tries = otp.Tries + 1
+
+	err = Insert(otp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func GetAuth(accessTokenRequest access_token.AccessTokenRequest) (*OneTimePassword, *rest_errors.RestErr) {
 

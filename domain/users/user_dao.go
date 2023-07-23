@@ -15,11 +15,11 @@ import (
 const (
 	errorNoRows                 = "no rows in result set"
 	queryGetExternalAccess      = "SELECT u.id, u.external_access FROM users u WHERE u.id = ?"
-	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, u.default_password FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
+	queryGetUser                = "SELECT u.id, u.name, u.email, u.password, p.profile_code as role, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i'), u.instance_id, u.default_password, p.name FROM users u LEFT JOIN profile_users pu ON pu.id_user = u.id LEFT JOIN profiles p ON p.id = pu.id_profile WHERE u.id = ?"
 	queryTotalUsers             = "SELECT COUNT(*) as TOTAL FROM users u WHERE 1 = 1"
 	queryGetUsers               = "SELECT u.id, u.name, u.email, u.contact, u.password, u.status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, u.instance_id, u.default_password, i.name as instance_name FROM users u LEFT JOIN instances i ON u.instance_id = i.id WHERE 1 = 1"
 	queryGetAttendants          = "SELECT id, name,  role, status FROM users WHERE 1 = 1"
-	queryFindByEmailAndPassword = "SELECT id, name, email, contact, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, password from users  WHERE email = ? AND status = ?"
+	queryFindByEmailAndPassword = "SELECT id, name, email, role, contact, status, DATE_FORMAT(date_created, '%d/%m/%Y %k:%i') date_created, password from users  WHERE email = ? AND status = ?"
 	queryInsertUser             = "INSERT INTO users (name, email, contact, password, status, date_created, instance_id, default_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 	queryUpdateUser             = "UPDATE users SET email = ?, status = ?, instance_id = ?, name = ?, contact = ? WHERE id = ?"
 	queryUpdateUserName         = "UPDATE users SET name = ? WHERE id = ?"
@@ -109,7 +109,7 @@ func (user *User) FindByEmailAndPassword() *rest_errors.RestErr {
 
 	result := stmt.QueryRow(user.Email, user.Status)
 
-	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Contact, &user.Status, &user.DateCreated, &user.Password); getErr != nil {
+	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Role, &user.Contact, &user.Status, &user.DateCreated, &user.Password); getErr != nil {
 		if strings.Contains(getErr.Error(), mysql_utils.ErrorNoRows) {
 			return rest_errors.NewNotFoundError("invalid user credentials")
 		}
@@ -216,7 +216,7 @@ func (user *User) GetUser() *rest_errors.RestErr {
 	result := stmt.QueryRow(user.Id)
 
 	if getErr := result.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role, &user.Status, &user.DateCreated,
-		&user.InstanceId, &user.DefaultPassword); getErr != nil {
+		&user.InstanceId, &user.DefaultPassword, &user.ProfileAccess); getErr != nil {
 		logger.Error("error when trying to get user", getErr)
 		return rest_errors.NewInternalServerError("database error")
 	}

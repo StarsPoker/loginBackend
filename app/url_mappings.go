@@ -86,7 +86,7 @@ func mapUrls() {
 	router.Use(CORSMiddleware())
 	router.Use(OAuthMiddleware())
 
-	api := router.Group("/api/")
+	api := router.Group("/api/auth/")
 
 	api.OPTIONS("/*path", CORSMiddleware())
 
