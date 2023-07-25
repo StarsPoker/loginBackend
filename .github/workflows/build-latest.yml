@@ -19,6 +19,7 @@ jobs:
         status_code=$(curl --write-out %{http_code} --silent --output /dev/null --location --request POST "$JENKINS_URL/$JOB_NAME/buildWithParameters?token=$TOKEN_JOB&tag=$TAG&branch=$BRANCH&remove_old_image=$REMOVE_OLDS" \
         --header "Authorization: Basic $BASIC_AUTH")
         if [[ "$status_code" -ne 201 ]] ; then
+          echo "Erro ao solicitar o build no Jenkins"
           exit 1
         else
           exit 0
