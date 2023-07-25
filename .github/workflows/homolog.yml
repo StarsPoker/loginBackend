@@ -5,7 +5,7 @@ on:
     branches: [ "develop" ]
 
 env: 
-  JOB_NAME: job/Build%20and%20Deploy/job/Build%20e%20Deploy%20Sistema%20SX%20Commercial%20Backend
+  JOB_NAME: job/Build%20and%20Deploy/job/Build%20e%20Deploy%20Sistema%20SX%20Login%20Backend
   TAG: :develop
   BRANCH: develop
   REMOVE_OLDS: true
