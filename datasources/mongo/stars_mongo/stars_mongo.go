@@ -3,7 +3,7 @@ package stars_mongo
 import (
 	"fmt"
 	"os"
-
+	"log"
 	"gopkg.in/mgo.v2"
 )
 
@@ -56,9 +56,10 @@ func init() {
 
 	globalSession, err = mgo.Dial(username + ":" + password + "@" + host + ":" + port)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Erro ao iniciar o mongo: ", err)
 		//		panic(err)
 	}
 
 	globalSession.SetMode(mgo.Monotonic, true)
+	log.Println("Mongo successfully configured.")
 }
