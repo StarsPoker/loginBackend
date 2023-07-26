@@ -32,21 +32,25 @@ type AccessTokenServiceInterface interface {
 }
 
 func (s *accessTokenService) GetById(accessTokenId string) (*access_token.AccessToken, *rest_errors.RestErr) {
-
-	accessTokenId = strings.TrimSpace(accessTokenId)
 	if len(accessTokenId) == 0 {
 		return nil, rest_errors.NewBadRequestError("invalid access token")
 	}
+	accessTokenId = strings.TrimSpace(accessTokenId)
 
-	accessToken, err := access_token.GetById(accessTokenId)
-	if err != nil {
-		return nil, err
+	accessTokenId = strings.Replace(accessTokenId, "Bearer ", "", 1)
+	tkn, errGet := access_token.CheckToken(accessTokenId)
+	if errGet != nil {
+		return nil, errGet
 	}
-	return accessToken, nil
+	// accessToken, err := access_token.GetById(accessTokenId)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return tkn, nil
 }
 
 func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
-
+	fmt.Printf("CHAMANDO CREATE")
 	if err := accessTokenRequest.Validate(); err != nil {
 		return nil, err
 	}
@@ -96,7 +100,6 @@ func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_err
 		return rest_errors.NewUnauthorizedError("access token not found")
 	}
 	accessToken, err := AccessTokenService.GetById(accessTokenId)
-
 	if err != nil {
 		return rest_errors.NewUnauthorizedError("invalid access token")
 	}
