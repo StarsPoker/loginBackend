@@ -2,9 +2,9 @@ package access_token
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
-
 	// "github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -13,9 +13,10 @@ import (
 
 const (
 	expirationTime = 12
+	jwt_key        = "jwt_key"
 )
 
-var jwtKey = []byte("my_secret_key")
+var jwtKey = []byte(os.Getenv(jwt_key))
 
 type AccessToken struct {
 	AccessToken     string    `json:"access_token" bson:"access_token"`

@@ -31,13 +31,13 @@ type AccessTokenServiceInterface interface {
 }
 
 func (s *accessTokenService) GetById(accessTokenId string) (*access_token.AccessToken, *rest_errors.RestErr) {
-	fmt.Println("TOKEN: ", accessTokenId)
 	if len(accessTokenId) == 0 {
 		return nil, rest_errors.NewBadRequestError("invalid access token")
 	}
-	accessTokenId = strings.Replace(accessTokenId, "Bearer ", "", 1)
+	if strings.Contains(accessTokenId, "Bearer") {
+		accessTokenId = accessTokenId[7:]
+	}
 	accessTokenId = strings.TrimSpace(accessTokenId)
-	fmt.Println(accessTokenId)
 
 	tkn, errGet := access_token.CheckToken(accessTokenId)
 	if errGet != nil {
