@@ -2,11 +2,10 @@ package services
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/StarsPoker/loginBackend/domain/access_token"
 	"github.com/StarsPoker/loginBackend/domain/one_time_password"
 	"github.com/StarsPoker/loginBackend/domain/users"
+	"strings"
 
 	"github.com/StarsPoker/loginBackend/domain/chat_repository"
 	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
@@ -32,17 +31,19 @@ type AccessTokenServiceInterface interface {
 }
 
 func (s *accessTokenService) GetById(accessTokenId string) (*access_token.AccessToken, *rest_errors.RestErr) {
+	fmt.Println("TOKEN: ", accessTokenId)
 	if len(accessTokenId) == 0 {
 		return nil, rest_errors.NewBadRequestError("invalid access token")
 	}
-	accessTokenId = strings.TrimSpace(accessTokenId)
-
 	accessTokenId = strings.Replace(accessTokenId, "Bearer ", "", 1)
+	accessTokenId = strings.TrimSpace(accessTokenId)
+	fmt.Println(accessTokenId)
+
 	tkn, errGet := access_token.CheckToken(accessTokenId)
 	if errGet != nil {
 		return nil, errGet
 	}
-	// accessToken, err := access_token.GetById(accessTokenId)
+	// tkn, err := access_token.GetById(accessTokenId)
 	// if err != nil {
 	// 	return nil, err
 	// }
@@ -96,11 +97,14 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 }
 
 func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_errors.RestErr {
+	accessTokenId = strings.Replace(accessTokenId, "Bearer ", "", 1)
 	if accessTokenId == "" {
+		fmt.Println("access token not found")
 		return rest_errors.NewUnauthorizedError("access token not found")
 	}
 	accessToken, err := AccessTokenService.GetById(accessTokenId)
 	if err != nil {
+		fmt.Println("invalid access token")
 		return rest_errors.NewUnauthorizedError("invalid access token")
 	}
 
@@ -114,12 +118,12 @@ func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_err
 	expired := accessToken.IsExpired()
 	if expired {
 		_ = access_token.Delete(accessTokenId)
-
+		fmt.Println("access token expired")
 		return rest_errors.NewUnauthorizedError("access token expired")
 	}
 
 	_ = access_token.UpdateLastInteraction(accessTokenId)
-
+	fmt.Println("access token valid")
 	return nil
 }
 

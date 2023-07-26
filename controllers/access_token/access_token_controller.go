@@ -28,12 +28,12 @@ type accessTokenController struct {
 }
 
 func (cont *accessTokenController) GetById(c *gin.Context) {
-	at, err := services.AccessTokenService.GetById(c.Param("access_token_id"))
+	access_token_id := c.Request.Header["Authorization"][0][7:]
+	at, err := services.AccessTokenService.GetById(access_token_id)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-
 	c.JSON(http.StatusOK, at)
 }
 

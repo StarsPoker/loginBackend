@@ -108,7 +108,7 @@ func (cont *profileController) GetProfiles(c *gin.Context) {
 	page := 1
 	itemsPerPage := 10
 
-	token := c.Request.Header["Authorization"][0]
+	token := c.Request.Header["Authorization"][0][7:]
 	at, tokenErr := services.AccessTokenService.GetById(token)
 	if tokenErr != nil {
 		err := rest_errors.NewBadRequestError("Invalid access token")
