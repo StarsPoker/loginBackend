@@ -211,7 +211,7 @@ func (ctrl *menusController) ChangeOrderDownMenu(c *gin.Context) {
 }
 
 func (cont *menusController) BuildMenu(c *gin.Context) {
-	token := c.Request.Header["Authorization"][0]
+	token := c.Request.Header["Authorization"][0][7:]
 	at, tokenErr := services.AccessTokenService.GetById(token)
 	if tokenErr != nil {
 		err := rest_errors.NewBadRequestError("Invalid access token")
@@ -229,7 +229,7 @@ func (cont *menusController) BuildMenu(c *gin.Context) {
 }
 
 func (cont *menusController) BuildMenuSearch(c *gin.Context) {
-	token := c.Request.Header["Authorization"][0]
+	token := c.Request.Header["Authorization"][0][7:]
 	at, tokenErr := services.AccessTokenService.GetById(token)
 	if tokenErr != nil {
 		err := rest_errors.NewBadRequestError("Invalid access token")
@@ -249,7 +249,7 @@ func (cont *menusController) BuildMenuSearch(c *gin.Context) {
 }
 
 func (cont *menusController) ProfilePermission(c *gin.Context) {
-	token := c.Request.Header["Authorization"][0]
+	token := c.Request.Header["Authorization"][0][7:]
 	at, tokenErr := services.AccessTokenService.GetById(token)
 	if tokenErr != nil {
 		err := rest_errors.NewBadRequestError("Invalid access token")
