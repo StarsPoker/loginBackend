@@ -53,6 +53,11 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 			c.JSON(err.Status, err)
 			return
 		}
+		http.SetCookie(c.Writer, &http.Cookie{
+			Name:    "access_token",
+			Value:   otp.AccessToken.AccessToken,
+			Expires: otp.AccessToken.ExpirationTime,
+		})
 		c.JSON(http.StatusOK, otp)
 	} else {
 		otp, err := services.AccessTokenService.Create(accessTokenRequest)
@@ -62,6 +67,11 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		}
 		fmt.Println("Created")
 
+		http.SetCookie(c.Writer, &http.Cookie{
+			Name:    "access_token",
+			Value:   otp.AccessToken.AccessToken,
+			Expires: otp.AccessToken.ExpirationTime,
+		})
 		c.JSON(http.StatusOK, otp)
 	}
 }
