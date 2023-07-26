@@ -19,7 +19,7 @@ func OAuthMiddleware() gin.HandlerFunc {
 		route := c.FullPath()
 		if !strings.Contains(route, "/oauth/access_token") {
 			if len(c.Request.Header["Authorization"]) > 0 {
-				token := c.Request.Header["Authorization"][0][7:]
+				token := c.Request.Header["Authorization"][0]
 				if err := services.AccessTokenService.ValidateAccessToken(token); err != nil {
 					c.JSON(err.Status, err)
 					c.Abort()
