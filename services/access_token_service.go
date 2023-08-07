@@ -2,10 +2,11 @@ package services
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/StarsPoker/loginBackend/domain/access_token"
 	"github.com/StarsPoker/loginBackend/domain/one_time_password"
 	"github.com/StarsPoker/loginBackend/domain/users"
-	"strings"
 
 	"github.com/StarsPoker/loginBackend/domain/chat_repository"
 	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
@@ -37,6 +38,7 @@ func (s *accessTokenService) GetById(accessTokenId string) (*access_token.Access
 	if strings.Contains(accessTokenId, "Bearer") {
 		accessTokenId = accessTokenId[7:]
 	}
+	fmt.Println("accessTokenId: ", accessTokenId)
 	accessTokenId = strings.TrimSpace(accessTokenId)
 
 	tkn, errGet := access_token.CheckToken(accessTokenId)
