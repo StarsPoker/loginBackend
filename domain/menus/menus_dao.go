@@ -11,7 +11,7 @@ const (
 	errorNoRows               = "no rows in result set"
 	queryGetMenu              = "SELECT m.id, m.name, m.icon, m.link, m.parent, m.level, m.menu_order FROM menus m WHERE id = ?"
 	queryGetMenus             = "SELECT DISTINCT m.id, m.name, m.icon, m.link, m.parent, m.level, m.menu_order, coalesce(pm.id, 0) as id_relation, IF(pm.id IS NULL,0, 1) as has_relation, IF(mm.id IS NULL, 0, 1) as has_chield FROM menus m LEFT JOIN menus mm  ON mm.parent = m.id LEFT JOIN profile_menus pm ON pm.id_menu = m.id AND pm.id_profile = ? WHERE m.level = 1 ORDER BY menu_order"
-	queryGetChildrens         = "SELECT m.id, m.name, m.icon, m.link, m.parent, m.level, m.menu_order, m.profile_father, coalesce(pm.id, 0) as id_relation, IF(pm.id IS NULL,0, 1) as has_relation FROM menus m LEFT JOIN profile_menus pm ON pm.id_menu = m.id AND pm.id_profile = ? WHERE parent = ? ORDER BY menu_order"
+	queryGetChildrens         = "SELECT m.id, m.name, m.icon, m.link, m.parent, m.level, m.menu_order, m.profile_father, coalesce(pm.id, 0) as id_relation, IF(pm.id IS NULL,0, 1) as has_relation FROM menus m LEFT JOIN profile_menus pm ON pm.id_menu = m.id AND pm.id_profile = ? WHERE parent = ? ORDER BY menu_order, m.name"
 	queryinsertMenu           = "INSERT INTO menus (name, icon, link, parent, level, menu_order) VALUES (?, ?, ?, ?, ?, ?)"
 	queryUpdateMenu           = "UPDATE menus SET name = ?, icon = ?, link = ? WHERE id = ?"
 	queryDeleteMenu           = "DELETE FROM menus WHERE id = ?"

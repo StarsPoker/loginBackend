@@ -26,6 +26,7 @@ type User struct {
 	OldPassword     string  `json:"old_password"`
 	DefaultPassword int64   `json:"default_password"`
 	ExternalAccess  int64   `json:"external_access"`
+	ProfileAccess   *string `json:"profile_access"`
 }
 
 type Filter struct {

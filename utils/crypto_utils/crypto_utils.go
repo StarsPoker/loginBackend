@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"strconv"
+	"time"
 )
 
 func GetMd5(input string) string {
@@ -15,6 +16,7 @@ func GetMd5(input string) string {
 }
 
 func GetToken(min int, max int) string {
+	rand.Seed(time.Now().UnixNano())
 	token := strconv.Itoa(rand.Intn(max-min) + min)
 	return token
 }

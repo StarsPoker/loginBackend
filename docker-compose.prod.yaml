@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  loginsx:
+    build: 
+      context: ./
+      target: prod
+    working_dir: /app
+    container_name: loginsx
+    ports:
+      - "8079:8079"
+    env_file:
+      - ../config/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./:/app
+      - ../certs:/app/certs
+    restart: unless-stopped
+    networks:
+      - database_databases
+networks:
+  database_databases:
+    external: true

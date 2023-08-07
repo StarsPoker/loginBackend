@@ -11,20 +11,20 @@ var (
 	router    = gin.Default()
 	stars_pem = os.Getenv(stars_pem_key)
 	stars_key = os.Getenv(stars_key_key)
-	stars_env = os.Getenv(stars_env_key)
+	use_cert  = os.Getenv(use_cert_key)
 )
 
 const (
 	stars_pem_key = "stars_pem"
 	stars_key_key = "stars_key"
-	stars_env_key = "stars_env"
+	use_cert_key  = "use_cert"
 )
 
 func StartApplication() {
 	logger.Info("about to start the application ...")
 	mapUrls()
 
-	if stars_env == "production" || stars_env == "homologation" {
+	if use_cert == "true" {
 		router.RunTLS(":8079", stars_pem, stars_key)
 	} else {
 		router.Run(":8079")
