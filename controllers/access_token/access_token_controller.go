@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
 	"github.com/StarsPoker/loginBackend/services"
@@ -28,7 +29,10 @@ type accessTokenController struct {
 }
 
 func (cont *accessTokenController) GetById(c *gin.Context) {
-	access_token_id := c.Request.Header["Authorization"][0][7:]
+	access_token_id := c.Request.Header["Authorization"][0]
+	if strings.Contains(access_token_id, "Bearer") {
+		access_token_id = access_token_id[7:]
+	}
 	at, err := services.AccessTokenService.GetById(access_token_id)
 	if err != nil {
 		c.JSON(err.Status, err)

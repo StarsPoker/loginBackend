@@ -38,7 +38,6 @@ func (s *accessTokenService) GetById(accessTokenId string) (*access_token.Access
 	if strings.Contains(accessTokenId, "Bearer") {
 		accessTokenId = accessTokenId[7:]
 	}
-	fmt.Println("accessTokenId: ", accessTokenId)
 	accessTokenId = strings.TrimSpace(accessTokenId)
 
 	tkn, errGet := access_token.CheckToken(accessTokenId)
