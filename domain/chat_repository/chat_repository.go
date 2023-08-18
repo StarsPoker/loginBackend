@@ -107,7 +107,7 @@ func SendMail(otp one_time_password.OneTimePassword, user *users.User) {
 
 	message := &m.Message{}
 	message.AddRecipient(user.Email, user.Name, "to")
-	message.FromEmail = "no-reply@meugreen.com"
+	message.FromEmail = "no-reply@sx-co.com"
 	message.FromName = "TI GrupoSx"
 	message.Subject = "Token de acesso ao GrupoSx"
 	message.Text = content
