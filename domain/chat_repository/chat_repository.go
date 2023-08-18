@@ -8,9 +8,8 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 
-	gomail "gopkg.in/mail.v2"
+	m "github.com/keighl/mandrill"
 
 	"github.com/StarsPoker/loginBackend/consts"
 	"github.com/StarsPoker/loginBackend/domain/one_time_password"
@@ -85,23 +84,33 @@ func SendWhatsappMessage(otp one_time_password.OneTimePassword, user *users.User
 
 func SendMail(otp one_time_password.OneTimePassword, user *users.User) {
 	content := fmt.Sprint(getSlice(), MESSAGE, otp.Code, "\n\nAtenciosamente, equipe do GrupoSx.")
+	/*
+		m := gomail.NewMessage()
 
-	m := gomail.NewMessage()
+		m.SetHeader("From", user_email)
+		m.SetHeader("To", user.Email)
+		m.SetHeader("Subject", "Token de acesso ao GrupoSx")
+		m.SetBody("text/plain", content)
 
-	m.SetHeader("From", user_email)
-	m.SetHeader("To", user.Email)
-	m.SetHeader("Subject", "Token de acesso ao GrupoSx")
-	m.SetBody("text/plain", content)
+		port, _ := strconv.Atoi(port_email)
 
-	port, _ := strconv.Atoi(port_email)
+		d := gomail.NewDialer(host_email, port, user_email, password_email)
 
-	d := gomail.NewDialer(host_email, port, user_email, password_email)
+		// This is only needed when SSL/TLS certificate is not valid on server.
+		// In production this should be set to false.
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-	// This is only needed when SSL/TLS certificate is not valid on server.
-	// In production this should be set to false.
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		if err := d.DialAndSend(m); err != nil {
+			fmt.Println(err)
+		} */
+	client := m.ClientWithKey(password_email)
 
-	if err := d.DialAndSend(m); err != nil {
-		fmt.Println(err)
-	}
+	message := &m.Message{}
+	message.AddRecipient(user.Email, user.Name, "to")
+	message.FromEmail = "no-reply@meugreen.com"
+	message.FromName = "TI GrupoSx"
+	message.Subject = "Token de acesso ao GrupoSx"
+	message.Text = content
+
+	client.MessagesSend(message)
 }

@@ -52,7 +52,6 @@ func (s *accessTokenService) GetById(accessTokenId string) (*access_token.Access
 }
 
 func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenRequest) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
-	fmt.Printf("CHAMANDO CREATE")
 	if err := accessTokenRequest.Validate(); err != nil {
 		return nil, err
 	}
@@ -88,10 +87,10 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 		return nil, err
 	}
 
-	if user.Contact != nil {
+	/* if user.Contact != nil {
 		go chat_repository.SendWhatsappMessage(otp, user)
-	}
-	go chat_repository.SendMail(otp, user)
+	} */
+	chat_repository.SendMail(otp, user)
 
 	otp.Code = "anonimized"
 	return &otp, nil

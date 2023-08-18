@@ -1,4 +1,4 @@
-FROM golang:alpine3.14 as base
+FROM golang:alpine as base
 RUN apk update && apk add bash inotify-tools && apk add git
 
 WORKDIR /app
