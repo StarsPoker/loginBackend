@@ -77,6 +77,8 @@ func mapUsersRoutes(api *gin.RouterGroup) {
 func mapOauthRoutes(api *gin.RouterGroup) {
 	oauthGroup := api.Group("oauth")
 	// oauthGroup.GET("/access_token/:access_token_id", access_token.AccessTokenController.GetById)
+
+	oauthGroup.POST("/qr_code_authenticator", access_token.AccessTokenController.GenerateQrCodeAuthenticator)
 	oauthGroup.GET("/access_token", access_token.AccessTokenController.GetById)
 	oauthGroup.POST("/access_token", access_token.AccessTokenController.Create)
 	oauthGroup.DELETE("/access_token/:access_token_id", access_token.AccessTokenController.Delete)

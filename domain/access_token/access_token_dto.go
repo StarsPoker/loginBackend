@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"time"
+
 	// "github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -31,6 +32,12 @@ type AccessToken struct {
 	UserIpFront     string    `json:"user_ip_front" bson:"user_ip_front"`
 	ExpirationTime  time.Time `json:"expiration_time" bson:"expiration_time"`
 	jwt.RegisteredClaims
+}
+
+type QrCodeAuthenticator struct {
+	URI        string `json:"uri"`
+	Base64     string `json:"base64"`
+	ShowQrCode bool   `json:"show_qr_code"`
 }
 
 func (at *AccessToken) Validate() *rest_errors.RestErr {

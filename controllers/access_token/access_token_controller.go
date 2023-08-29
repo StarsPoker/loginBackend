@@ -23,6 +23,7 @@ type AccessTokenInterface interface {
 	Delete(c *gin.Context)
 	CheckAuth(c *gin.Context)
 	DeleteExpiredTokens()
+	GenerateQrCodeAuthenticator(c *gin.Context)
 }
 
 type accessTokenController struct {
@@ -49,7 +50,7 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		c.JSON(restErr.Status, restErr)
 		return
 	}
-	if stars_env == "development" {
+	if stars_env != "development" {
 		host := c.Request.Host
 		client_ip := c.ClientIP()
 		otp, err := services.AccessTokenService.CreateDevelopment(accessTokenRequest, host, client_ip)
@@ -119,4 +120,23 @@ func (cont *accessTokenController) DeleteExpiredTokens() {
 	services.AccessTokenService.DeleteExpiredAccesTokens()
 	services.AccessTokenService.DeleteExpiredOneTimePasswords()
 
+}
+
+func (cont *accessTokenController) GenerateQrCodeAuthenticator(c *gin.Context) {
+	var accessTokenRequest access_token.AccessTokenRequest
+
+	if err := c.ShouldBindJSON(&accessTokenRequest); err != nil {
+		restErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+
+	qrCode, err := services.AccessTokenService.GenerateQrCodeAuthenticator(accessTokenRequest)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+
+	}
+
+	c.JSON(http.StatusOK, qrCode)
 }

@@ -1,16 +1,19 @@
 package services
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/StarsPoker/loginBackend/domain/access_token"
 	"github.com/StarsPoker/loginBackend/domain/one_time_password"
 	"github.com/StarsPoker/loginBackend/domain/users"
-
-	"github.com/StarsPoker/loginBackend/domain/chat_repository"
 	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
+	"github.com/jcmturner/gootp"
+	"github.com/skip2/go-qrcode"
+	"github.com/xlzd/gotp"
 )
 
 var (
@@ -27,6 +30,7 @@ type AccessTokenServiceInterface interface {
 	Delete(string) *rest_errors.RestErr
 	CheckAuth(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr)
 	CreateDevelopment(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr)
+	GenerateQrCodeAuthenticator(accessTokenRequest access_token.AccessTokenRequest) (*access_token.QrCodeAuthenticator, *rest_errors.RestErr)
 	DeleteExpiredAccesTokens()
 	DeleteExpiredOneTimePasswords()
 }
@@ -79,20 +83,23 @@ func (s *accessTokenService) Create(accessTokenRequest access_token.AccessTokenR
 	}
 
 	var otp one_time_password.OneTimePassword
-	otp = otp.CreateOtp(user)
-
+	otp = otp.CreateOtp(user, false)
+	if !user.AuthenticatorConfigured {
+		qr, errQr := GenerateQrCodeAuthenticatorByOtp(otp)
+		if errQr != nil {
+			return nil, errQr
+		}
+		otp.QrCode = *qr
+	}
+	otp.AuthenticatorConfigured = user.AuthenticatorConfigured
 	err := one_time_password.Insert(otp)
 
 	if err != nil {
 		return nil, err
 	}
 
-	/* if user.Contact != nil {
-		go chat_repository.SendWhatsappMessage(otp, user)
-	} */
-	chat_repository.SendMail(otp, user)
-
 	otp.Code = "anonimized"
+
 	return &otp, nil
 }
 
@@ -118,12 +125,10 @@ func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_err
 	expired := accessToken.IsExpired()
 	if expired {
 		_ = access_token.Delete(accessTokenId)
-		fmt.Println("access token expired")
 		return rest_errors.NewUnauthorizedError("access token expired")
 	}
 
 	_ = access_token.UpdateLastInteraction(accessTokenId)
-	fmt.Println("access token valid")
 	return nil
 }
 
@@ -143,11 +148,6 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 		return nil, err
 	}
 
-	otp, err = one_time_password.CheckAuth(otp, accessTokenRequest)
-	if err != nil {
-		return nil, err
-	}
-
 	user := &users.User{
 		Id: otp.UserId,
 	}
@@ -156,26 +156,39 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 	if errGetUser != nil {
 		return nil, errGetUser
 	}
-
-	rec := false //recursive calling
-	rec = one_time_password.DeleteAllById(*otp, rec)
-	if !rec {
-		return nil, nil
+	if user.OTPSecret == nil {
+		return nil, rest_errors.NewInternalServerError("Reinicie o fluxo de login")
 	}
+	totp := gotp.NewDefaultTOTP(*user.OTPSecret)
+	ok := totp.Verify(accessTokenRequest.ClientScret, time.Now().Unix())
+	if ok {
+		rec := false //recursive calling
+		rec = one_time_password.DeleteAllById(*otp, rec)
+		if !rec {
+			return nil, nil
+		}
 
-	at := access_token.GetNewAccessToken(user.Id, *user.Role)
-	at.Generate()
-	at.UserHost = host
-	at.UserClientIp = client_ip
-	at.UserIpFront = accessTokenRequest.UserIpFront
-	err = access_token.Create(at)
-	if err != nil {
-		return nil, err
+		at := access_token.GetNewAccessToken(user.Id, *user.Role)
+		at.Generate()
+		at.UserHost = host
+		at.UserClientIp = client_ip
+		at.UserIpFront = accessTokenRequest.UserIpFront
+		err = access_token.Create(at)
+		if err != nil {
+			return nil, err
+		}
+		otp.AccessToken = at
+		if !user.AuthenticatorConfigured {
+			user.AuthenticatorConfigured = true
+			user.Update()
+		}
+	} else {
+		return nil, rest_errors.NewInternalServerError("Código inválido ou expirado")
 	}
-	otp.AccessToken = at
 
 	return otp, nil
 }
+
 func (s *accessTokenService) CreateDevelopment(accessTokenRequest access_token.AccessTokenRequest, host string, client_ip string) (*one_time_password.OneTimePassword, *rest_errors.RestErr) {
 	otp := &one_time_password.OneTimePassword{
 		AccessToken: access_token.AccessToken{
@@ -218,4 +231,58 @@ func (s *accessTokenService) DeleteExpiredOneTimePasswords() {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func GenerateQrCodeAuthenticatorByOtp(otp one_time_password.OneTimePassword) (*access_token.QrCodeAuthenticator, *rest_errors.RestErr) {
+	user, errGetUser := UsersService.GetUser(otp.UserId)
+	if errGetUser != nil {
+		return nil, errGetUser
+	}
+	secret := ""
+	if user.OTPSecret == nil {
+		newSecret, errGetSecret := gootp.GenerateOTPSecret(32)
+		if errGetSecret != nil {
+			return nil, rest_errors.NewInternalServerError("error in generating secret")
+		}
+		user.OTPSecret = &newSecret
+
+		errUpdateUser := user.Update()
+		if errUpdateUser != nil {
+			return nil, errUpdateUser
+		}
+		secret = newSecret
+	} else {
+		secret = *user.OTPSecret
+	}
+	totp := gotp.NewTOTP(secret, 6, 60, nil)
+	uri := totp.ProvisioningUri(user.Email, "GrupoSX")
+
+	qrCodeImage, errGenQrImage := generateQR(uri)
+	if errGenQrImage != nil {
+		return nil, errGenQrImage
+	}
+	qr := &access_token.QrCodeAuthenticator{
+		URI:    uri,
+		Base64: qrCodeImage,
+	}
+	return qr, nil
+}
+
+func (s *accessTokenService) GenerateQrCodeAuthenticator(accessTokenRequest access_token.AccessTokenRequest) (*access_token.QrCodeAuthenticator, *rest_errors.RestErr) {
+	otp, err := one_time_password.GetAuth(accessTokenRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return GenerateQrCodeAuthenticatorByOtp(*otp)
+}
+
+func generateQR(url string) (string, *rest_errors.RestErr) {
+	qrCode, _ := qrcode.New(url, qrcode.Medium)
+	png, err := qrCode.PNG(256)
+	if err != nil {
+		return "", rest_errors.NewInternalServerError("error in generating qr code")
+	}
+	sEnc := base64.StdEncoding.EncodeToString(png)
+	return sEnc, nil
 }

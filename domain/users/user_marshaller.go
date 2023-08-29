@@ -6,6 +6,7 @@ type PublicUser struct {
 	Status        int64   `json:"status"`
 	Email         string  `json:"email"`
 	ProfileAccess *string `json:"profile_access"`
+	Inscription   *string `json:"inscription"`
 }
 
 type PrivateUser struct {
@@ -20,6 +21,7 @@ type PrivateUser struct {
 	DateCreated     string  `json:"date_created"`
 	DefaultPassword int64   `json:"default_password"`
 	ProfileAccess   *string `json:"profile_access"`
+	Inscription     *string `json:"inscription"`
 }
 
 func (users Users) Marshall(isPublic bool) []interface{} {
@@ -58,5 +60,6 @@ func (user *User) Marshall(isPublic bool) interface{} {
 		DateCreated:     user.DateCreated,
 		DefaultPassword: user.DefaultPassword,
 		ProfileAccess:   user.ProfileAccess,
+		Inscription:     user.Inscription,
 	}
 }
