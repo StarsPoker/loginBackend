@@ -50,7 +50,7 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		c.JSON(restErr.Status, restErr)
 		return
 	}
-	if stars_env != "development" {
+	if stars_env == "development" {
 		host := c.Request.Host
 		client_ip := c.ClientIP()
 		otp, err := services.AccessTokenService.CreateDevelopment(accessTokenRequest, host, client_ip)
