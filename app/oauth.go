@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/services"
@@ -18,7 +17,6 @@ const (
 func OAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		route := c.Request.URL.Path
-		fmt.Println(route)
 		if !strings.Contains(route, "/oauth/access_token") && !strings.Contains(route, "qr_code_authenticator") {
 			if len(c.Request.Header["Authorization"]) > 0 {
 				token := c.Request.Header["Authorization"][0]
