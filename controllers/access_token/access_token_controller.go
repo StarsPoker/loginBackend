@@ -73,7 +73,7 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 		fmt.Println("Created")
 
 		http.SetCookie(c.Writer, &http.Cookie{
-			Name:    "access_token",
+			Name:    "sx_access_token",
 			Value:   otp.AccessToken.AccessToken,
 			Expires: otp.AccessToken.ExpirationTime,
 		})
