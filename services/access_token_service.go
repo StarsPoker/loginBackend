@@ -250,7 +250,7 @@ func GenerateQrCodeAuthenticatorByOtp(otp one_time_password.OneTimePassword) (*a
 	} else {
 		secret = *user.OTPSecret
 	}
-	totp := gotp.NewTOTP(secret, 6, 60, nil)
+	totp := gotp.NewDefaultTOTP(secret)
 	uri := totp.ProvisioningUri(user.Email, "GrupoSX")
 
 	qrCodeImage, errGenQrImage := generateQR(uri)
