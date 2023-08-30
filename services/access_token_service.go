@@ -11,7 +11,6 @@ import (
 	"github.com/StarsPoker/loginBackend/domain/users"
 	"github.com/StarsPoker/loginBackend/utils/crypto_utils"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
-	"github.com/jcmturner/gootp"
 	"github.com/skip2/go-qrcode"
 	"github.com/xlzd/gotp"
 )
@@ -240,10 +239,7 @@ func GenerateQrCodeAuthenticatorByOtp(otp one_time_password.OneTimePassword) (*a
 	}
 	secret := ""
 	if user.OTPSecret == nil {
-		newSecret, errGetSecret := gootp.GenerateOTPSecret(32)
-		if errGetSecret != nil {
-			return nil, rest_errors.NewInternalServerError("error in generating secret")
-		}
+		newSecret := gotp.RandomSecret(32)
 		user.OTPSecret = &newSecret
 
 		errUpdateUser := user.Update()
