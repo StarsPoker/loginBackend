@@ -132,10 +132,7 @@ func (s *accessTokenService) ValidateAccessToken(accessTokenId string) *rest_err
 }
 
 func (s *accessTokenService) Delete(accessTokenId string) *rest_errors.RestErr {
-	err := access_token.Delete(accessTokenId)
-	if err != nil {
-		return err
-	}
+	access_token.Delete(accessTokenId)
 
 	return nil
 }
