@@ -18,7 +18,16 @@ func OAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		route := c.Request.URL.Path
 		if !strings.Contains(route, "/oauth/access_token") && !strings.Contains(route, "qr_code_authenticator") {
-			if len(c.Request.Header["Authorization"]) > 0 {
+			cookie, errGetCookie := c.Cookie("sx_access_token")
+			if errGetCookie == nil && cookie != "" {
+				token := cookie
+				if err := services.AccessTokenService.ValidateAccessToken(token); err != nil {
+					c.JSON(err.Status, err)
+					c.Abort()
+					return
+				}
+				return
+			} else if len(c.Request.Header["Authorization"]) > 0 {
 				token := c.Request.Header["Authorization"][0]
 				if err := services.AccessTokenService.ValidateAccessToken(token); err != nil {
 					c.JSON(err.Status, err)

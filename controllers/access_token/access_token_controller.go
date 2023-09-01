@@ -24,6 +24,7 @@ type AccessTokenInterface interface {
 	CheckAuth(c *gin.Context)
 	DeleteExpiredTokens()
 	GenerateQrCodeAuthenticator(c *gin.Context)
+	ValidateAccessToken(c *gin.Context)
 }
 
 type accessTokenController struct {
@@ -67,11 +68,10 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 	} else {
 		otp, err := services.AccessTokenService.Create(accessTokenRequest)
 		if err != nil {
+			fmt.Println("Created")
 			c.JSON(err.Status, err)
 			return
 		}
-		fmt.Println("Created")
-
 		http.SetCookie(c.Writer, &http.Cookie{
 			Name:    "sx_access_token",
 			Value:   otp.AccessToken.AccessToken,
@@ -87,6 +87,11 @@ func (cont *accessTokenController) Delete(c *gin.Context) {
 		c.JSON(err.Status, err)
 		return
 	}
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:  "sx_access_token",
+		Value: "",
+	})
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
@@ -139,4 +144,29 @@ func (cont *accessTokenController) GenerateQrCodeAuthenticator(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, qrCode)
+}
+
+func (cont *accessTokenController) ValidateAccessToken(c *gin.Context) {
+	if len(c.Request.Header["Authorization"]) == 0 {
+		c.JSON(http.StatusUnauthorized, map[string]string{"success": "unauthorized"})
+		return
+	}
+	token := c.Request.Header["Authorization"][0]
+	at, err := services.AccessTokenService.GetById(token)
+
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+
+	}
+	_, errGetCookie := c.Cookie("sx_access_token")
+	if errGetCookie != nil {
+		http.SetCookie(c.Writer, &http.Cookie{
+			Name:    "sx_access_token",
+			Value:   at.AccessToken,
+			Expires: at.ExpirationTime,
+		})
+	}
+
+	c.JSON(http.StatusOK, at)
 }

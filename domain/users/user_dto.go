@@ -36,6 +36,7 @@ type Filter struct {
 	Role            string `json:"role"`
 	Name            string `json:"name"`
 	Email           string `json:"email"`
+	Inscription     string `json:"inscription"`
 	Club            string `json:"id_instance"`
 	Status          string `json:"status"`
 	DefaultPassword string `json:"default_password"`

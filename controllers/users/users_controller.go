@@ -24,6 +24,7 @@ type UserControllerInterface interface {
 	GetUsers(c *gin.Context)
 	GetAttendants(c *gin.Context)
 	ChangePassword(c *gin.Context)
+	ResetQrCode(c *gin.Context)
 }
 
 type userController struct {
@@ -129,6 +130,23 @@ func (cont *userController) ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]string{"status": "changed"})
 }
 
+func (cont *userController) ResetQrCode(c *gin.Context) {
+	userId, idErr := UserController.getUserId(c.Param("user_id"))
+	if idErr != nil {
+		c.JSON(idErr.Status, idErr)
+		return
+	}
+
+	errChange := services.UsersService.ResetQrCode(userId)
+
+	if errChange != nil {
+		c.JSON(errChange.Status, errChange)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{"status": "reseted"})
+}
+
 func (cont *userController) DeleteUser(c *gin.Context) {
 	userId, idErr := UserController.getUserId(c.Param("user_id"))
 	if idErr != nil {
@@ -215,6 +233,7 @@ func buildFilter(c *gin.Context) *users.Filter {
 	filter.Email = c.Query("email")
 	filter.Club = c.Query("instance_id")
 	filter.Status = c.Query("status")
+	filter.Inscription = c.Query("inscription")
 	filter.DefaultPassword = c.Query("default_password")
 	filter.SortBy = c.Query("sort_by")
 	filter.SortDesc = c.Query("sort_desc")
