@@ -65,6 +65,10 @@ func buildQuery(query *string, queryTotal *string, filter *Filter) {
 		concatQuery = concatQuery + " AND u.inscription = '" + filter.Inscription + "'"
 	}
 
+	if filter.AuthenticatorConfigured != "" {
+		concatQuery = concatQuery + " AND u.authenticator_configured =" + filter.AuthenticatorConfigured
+	}
+
 	if concatQuery != "" {
 		*query = *query + concatQuery
 		*queryTotal = *queryTotal + concatQuery

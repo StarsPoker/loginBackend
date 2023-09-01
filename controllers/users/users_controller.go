@@ -235,6 +235,7 @@ func buildFilter(c *gin.Context) *users.Filter {
 	filter.Status = c.Query("status")
 	filter.Inscription = c.Query("inscription")
 	filter.DefaultPassword = c.Query("default_password")
+	filter.AuthenticatorConfigured = c.Query("authenticator_configured")
 	filter.SortBy = c.Query("sort_by")
 	filter.SortDesc = c.Query("sort_desc")
 
