@@ -164,7 +164,7 @@ func (s *accessTokenService) CheckAuth(accessTokenRequest access_token.AccessTok
 			return nil, nil
 		}
 
-		at := access_token.GetNewAccessToken(user.Id, *user.Role)
+		at := access_token.GetNewAccessToken(user.Id, *user.Role, user.Inscription)
 		at.Generate()
 		at.UserHost = host
 		at.UserClientIp = client_ip
@@ -199,8 +199,7 @@ func (s *accessTokenService) CreateDevelopment(accessTokenRequest access_token.A
 	if err := user.FindByEmailAndPassword(); err != nil {
 		return nil, err
 	}
-
-	at := access_token.GetNewAccessToken(user.Id, *user.Role)
+	at := access_token.GetNewAccessToken(user.Id, *user.Role, user.Inscription)
 	at.Generate()
 	at.UserHost = host
 	at.UserClientIp = client_ip

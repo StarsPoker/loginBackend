@@ -30,6 +30,7 @@ type AccessToken struct {
 	UserHost        string    `json:"user_host" bson:"user_host"`
 	UserClientIp    string    `json:"user_client_ip" bson:"user_client_ip"`
 	UserIpFront     string    `json:"user_ip_front" bson:"user_ip_front"`
+	Doc             *string   `json:"doc" bson:"doc"`
 	ExpirationTime  time.Time `json:"expiration_time" bson:"expiration_time"`
 	jwt.RegisteredClaims
 }
@@ -61,13 +62,14 @@ func (at *AccessToken) Validate() *rest_errors.RestErr {
 	return nil
 }
 
-func GetNewAccessToken(userId int64, role int64) AccessToken {
+func GetNewAccessToken(userId int64, role int64, doc *string) AccessToken {
 	return AccessToken{
 		Role:            role,
 		UserId:          userId,
 		Expires:         date_utils.GetNow().Add(expirationTime * time.Hour).Unix(),
 		LastInteraction: date_utils.GetNow().Unix(),
 		Status:          1,
+		Doc:             doc,
 	}
 }
 
@@ -81,7 +83,7 @@ func (at AccessToken) IsExpired() bool {
 
 func (at *AccessToken) Generate() {
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
-	expirationTimeJwt := time.Now().Add(12 * time.Hour)
+	expirationTimeJwt := time.Now().Add(87600 * time.Hour)
 
 	at.RegisteredClaims = jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expirationTimeJwt),
