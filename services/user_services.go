@@ -25,6 +25,7 @@ type usersServiceInterface interface {
 	UpdateUserEdit(users.User) (*users.User, *rest_errors.RestErr)
 	DeleteUser(user users.User) *rest_errors.RestErr
 	GetAttendants(search string) (users.Users, *rest_errors.RestErr)
+	ResetQrCode(userId int64) *rest_errors.RestErr
 }
 
 func (s *usersService) GetUser(userId int64) (*users.User, *rest_errors.RestErr) {
@@ -83,6 +84,7 @@ func (s *usersService) UpdateUser(user users.User) (*users.User, *rest_errors.Re
 	current.InstanceId = user.InstanceId
 	current.Name = user.Name
 	current.Contact = user.Contact
+	current.Inscription = user.Inscription
 
 	if err := current.Update(); err != nil {
 		return nil, err
@@ -161,7 +163,22 @@ func (s *usersService) DeleteUser(user users.User) *rest_errors.RestErr {
 	}
 
 	if err := current.Delete(); err != nil {
-		return nil
+		return rest_errors.NewInternalServerError("Erro ao remover usuário")
+	}
+
+	return nil
+}
+
+func (s *usersService) ResetQrCode(userId int64) *rest_errors.RestErr {
+	current, err := UsersService.GetUser(userId)
+	if err != nil {
+		return err
+	}
+	current.OTPSecret = nil
+	current.AuthenticatorConfigured = false
+
+	if err := current.Update(); err != nil {
+		return rest_errors.NewInternalServerError("Erro ao resetar qr code do usuário")
 	}
 
 	return nil

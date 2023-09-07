@@ -1,0 +1,14 @@
+FROM golang:alpine as base
+RUN apk update && apk add bash inotify-tools && apk add git
+
+WORKDIR /app
+
+COPY ./ /app
+
+FROM base as prod
+
+RUN go mod tidy
+RUN go build -o /server
+EXPOSE 8079
+
+CMD ["/server"]

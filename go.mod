@@ -6,10 +6,15 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-shadow/moment v0.0.0-20140422073900-e837f27dad94
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/jcmturner/gootp v1.0.0 // indirect
+	github.com/keighl/mandrill v0.0.0-20170605120353-1775dd4b3b41 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/panamafrancis/tizzy v0.0.0-20180424083504-306e37620c08
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
+	github.com/xlzd/gotp v0.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.3.3
 	go.uber.org/zap v1.15.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect

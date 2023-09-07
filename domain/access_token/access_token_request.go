@@ -22,8 +22,9 @@ type AccessTokenRequest struct {
 	ClientScret string `json:"client_secret"`
 
 	// Used for grant otp searching
-	ClientKey   string `json:"client_key"`
-	UserIpFront string `json:"user_ip_front"`
+	ClientKey               string `json:"client_key"`
+	UserIpFront             string `json:"user_ip_front"`
+	AuthenticatorConfigured bool   `json:"authenticator_configured"`
 }
 
 func (at *AccessTokenRequest) Validate() *rest_errors.RestErr {

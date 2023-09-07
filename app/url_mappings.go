@@ -72,11 +72,16 @@ func mapUsersRoutes(api *gin.RouterGroup) {
 	usersGroup.PUT("/update/:user_id", users.UserController.UpdateUser)
 	usersGroup.PUT("/update_useredit/:user_id", users.UserController.UpdateUserEdit)
 	usersGroup.DELETE("/:user_id", users.UserController.DeleteUser)
+	usersGroup.PUT("/reset_qr_code/:user_id", users.UserController.ResetQrCode)
 }
 
 func mapOauthRoutes(api *gin.RouterGroup) {
 	oauthGroup := api.Group("oauth")
-	oauthGroup.GET("/access_token/:access_token_id", access_token.AccessTokenController.GetById)
+	// oauthGroup.GET("/access_token/:access_token_id", access_token.AccessTokenController.GetById)
+
+	oauthGroup.POST("/qr_code_authenticator", access_token.AccessTokenController.GenerateQrCodeAuthenticator)
+	oauthGroup.GET("/access_token", access_token.AccessTokenController.GetById)
+	oauthGroup.POST("/validate_token", access_token.AccessTokenController.ValidateAccessToken)
 	oauthGroup.POST("/access_token", access_token.AccessTokenController.Create)
 	oauthGroup.DELETE("/access_token/:access_token_id", access_token.AccessTokenController.Delete)
 	oauthGroup.POST("/access_token/check_auth", access_token.AccessTokenController.CheckAuth)

@@ -4,6 +4,7 @@ import (
 	"github.com/StarsPoker/loginBackend/logger"
 	"github.com/StarsPoker/loginBackend/utils/date_utils"
 	"github.com/StarsPoker/loginBackend/utils/mongo_utils"
+	"strings"
 
 	"github.com/StarsPoker/loginBackend/datasources/mongo/stars_mongo"
 	"github.com/StarsPoker/loginBackend/utils/errors/rest_errors"
@@ -23,7 +24,6 @@ func GetById(accessTokenId string) (*AccessToken, *rest_errors.RestErr) {
 	defer session.Close()
 
 	col := session.DB(database).C(collection)
-
 	err := col.Find(bson.M{"access_token": accessTokenId}).One(&at)
 
 	if err != nil {
@@ -37,7 +37,6 @@ func GetById(accessTokenId string) (*AccessToken, *rest_errors.RestErr) {
 func Create(accessToken AccessToken) *rest_errors.RestErr {
 	session, _ := stars_mongo.GetSession()
 	defer session.Close()
-
 	col := session.DB(database).C(collection)
 	err := col.Insert(&accessToken)
 
@@ -70,7 +69,7 @@ func UpdateLastInteraction(accessTokenId string) *rest_errors.RestErr {
 	defer session.Close()
 
 	col := session.DB(database).C(collection)
-
+	accessTokenId = strings.Replace(accessTokenId, "Bearer ", "", 1)
 	err := col.Update(bson.M{"access_token": accessTokenId}, bson.M{"$set": bson.M{"last_interaction": date_utils.GetNow().Unix()}})
 
 	if err != nil {
