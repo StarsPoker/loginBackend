@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/StarsPoker/loginBackend/services"
@@ -21,7 +20,6 @@ func OAuthMiddleware() gin.HandlerFunc {
 		if !strings.Contains(route, "/oauth/access_token") && !strings.Contains(route, "qr_code_authenticator") {
 			cookie, errGetCookie := c.Cookie("sx_access_token")
 			if errGetCookie == nil && cookie != "" {
-				fmt.Println("Cai aqui")
 				token := cookie
 				if err := services.AccessTokenService.ValidateAccessToken(token); err != nil {
 					c.JSON(err.Status, err)
