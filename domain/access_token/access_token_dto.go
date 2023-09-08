@@ -14,10 +14,10 @@ import (
 
 const (
 	expirationTime = 12
-	jwt_key        = "jwt_key"
+	jwt_key_env    = "jwt_key"
 )
 
-var jwtKey = []byte(os.Getenv(jwt_key))
+var jwtKey = []byte(os.Getenv(jwt_key_env))
 
 type AccessToken struct {
 	AccessToken     string    `json:"access_token" bson:"access_token"`
@@ -83,13 +83,14 @@ func (at AccessToken) IsExpired() bool {
 
 func (at *AccessToken) Generate() {
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
-	expirationTimeJwt := time.Now().Add(87600 * time.Hour)
+	expirationTimeJwt := time.Now().Add(expirationTime * time.Hour)
 
 	at.RegisteredClaims = jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expirationTimeJwt),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, at)
+	fmt.Println(string(jwtKey))
 	tokenString, err := token.SignedString(jwtKey)
 
 	if err != nil {
@@ -104,6 +105,7 @@ func (at *AccessToken) Generate() {
 func CheckToken(accessTokenId string) (*AccessToken, *rest_errors.RestErr) {
 	claims := &AccessToken{}
 
+	fmt.Println(string(jwtKey))
 	tkn, err := jwt.ParseWithClaims(accessTokenId, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
