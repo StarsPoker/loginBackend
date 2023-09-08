@@ -60,7 +60,7 @@ func (cont *accessTokenController) Create(c *gin.Context) {
 			return
 		}
 		http.SetCookie(c.Writer, &http.Cookie{
-			Name:    "access_token",
+			Name:    "sx_access_token",
 			Value:   otp.AccessToken.AccessToken,
 			Expires: otp.AccessToken.ExpirationTime,
 		})
@@ -147,20 +147,26 @@ func (cont *accessTokenController) GenerateQrCodeAuthenticator(c *gin.Context) {
 }
 
 func (cont *accessTokenController) ValidateAccessToken(c *gin.Context) {
-	if len(c.Request.Header["Authorization"]) == 0 {
-		c.JSON(http.StatusUnauthorized, map[string]string{"success": "unauthorized"})
-		return
+	token := ""
+	cookie, errGetCookie := c.Cookie("sx_access_token")
+	setCookie := false
+	if errGetCookie != nil || cookie == "" {
+		if len(c.Request.Header["Authorization"]) == 0 {
+			c.JSON(http.StatusUnauthorized, map[string]string{"success": "unauthorized"})
+			return
+		}
+		token = c.Request.Header["Authorization"][0]
+	} else {
+		token = cookie
 	}
-	token := c.Request.Header["Authorization"][0]
+
 	at, err := services.AccessTokenService.GetById(token)
 
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
-
 	}
-	_, errGetCookie := c.Cookie("sx_access_token")
-	if errGetCookie != nil {
+	if setCookie {
 		http.SetCookie(c.Writer, &http.Cookie{
 			Name:    "sx_access_token",
 			Value:   at.AccessToken,
