@@ -35,6 +35,16 @@ func (cont *accessTokenController) GetById(c *gin.Context) {
 	if strings.Contains(access_token_id, "Bearer") {
 		access_token_id = access_token_id[7:]
 	}
+
+	if len(access_token_id) == 0 {
+		cookie, errGetCookie := c.Cookie("sx_access_token")
+		if errGetCookie != nil || cookie == "" {
+			restErr := rest_errors.NewBadRequestError("invalid access token")
+			c.JSON(restErr.Status, restErr)
+			return
+		}
+	}
+
 	at, err := services.AccessTokenService.GetById(access_token_id)
 	if err != nil {
 		c.JSON(err.Status, err)
