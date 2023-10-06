@@ -1,0 +1,30 @@
+name: Delete Image aws
+
+on:
+  release: 
+    types: [deleted]
+  
+
+env: 
+  JOB_NAME: /job/Remove%20Images/job/Remove%20Image%20Sistema%20Sx%20Login%20Backend
+  TAG: ${{ github.event.release.tag_name }}
+  REMOVE_OLDS: false
+
+jobs:
+  call-jenkins:
+    runs-on: ubuntu-latest
+    steps:
+    - name: REST API with curl
+      run: |
+        echo "Teste: $JENKINS_URL/$JOB_NAME/buildWithParameters?token=$TOKEN_JOB"
+        status_code=$(curl --write-out %{http_code} --silent --output /dev/null --location --request POST "$JENKINS_URL/$JOB_NAME/buildWithParameters?token=$TOKEN_JOB&tag=$TAG" \
+        --header "Authorization: Basic $BASIC_AUTH")
+        if [[ "$status_code" -ne 201 ]] ; then
+          exit 1
+        else
+          exit 0
+        fi
+      env: 
+        BASIC_AUTH: ${{ secrets.BASIC_AUTH }}
+        JENKINS_URL: ${{ secrets.JENKINS_URL }}
+        TOKEN_JOB: ${{ secrets.TOKEN_JOB }}
