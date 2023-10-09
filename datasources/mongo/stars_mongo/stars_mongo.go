@@ -1,9 +1,15 @@
 package stars_mongo
 
 import (
+	"crypto/tls"
+	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
-	"log"
+	"strings"
+	"time"
+
 	"gopkg.in/mgo.v2"
 )
 
@@ -12,30 +18,17 @@ var (
 )
 
 const (
-	mongo_db_username = "mongo_db_username"
-	mongo_db_password = "mongo_db_password"
-	mongo_db_host     = "mongo_db_host"
-	mongo_db_port     = "mongo_db_port"
+	mongo_connection_uri = "mongo_connection_uri"
 )
 
 var (
-	host     = os.Getenv(mongo_db_host)
-	port     = os.Getenv(mongo_db_port)
-	username = os.Getenv(mongo_db_username)
-	password = os.Getenv(mongo_db_password)
+	connection_uri = os.Getenv(mongo_connection_uri)
 )
 
 func GetSession() (*mgo.Session, error) {
-	if host == "" {
-		host = "127.0.0.1"
-	}
-	if port == "" {
-		port = "27017"
-	}
-
 	if globalSession == nil {
 		var err error
-		globalSession, err = mgo.Dial(username + ":" + password + "@" + host + ":" + port)
+		globalSession, err = makeMongoSession()
 		if err != nil {
 			return nil, err
 		}
@@ -45,21 +38,57 @@ func GetSession() (*mgo.Session, error) {
 	return globalSession.Copy(), nil
 }
 
-func init() {
-	if host == "" {
-		host = "127.0.0.1"
-	}
-	if port == "" {
-		port = "27017"
-	}
-	var err error
+func makeMongoSession() (*mgo.Session, error) {
 
-	globalSession, err = mgo.Dial(username + ":" + password + "@" + host + ":" + port)
-	if err != nil {
-		fmt.Println("Erro ao iniciar o mongo: ", err)
-		//		panic(err)
+	// Our connection string - would be an environment variable most likely
+	// Note: we changed the host to the first shard
+	if strings.Contains(connection_uri, "mongodb+srv") {
+		parts, err := url.Parse(connection_uri)
+
+		if err != nil {
+			return nil, err
+		}
+		password, isSet := parts.User.Password()
+		if !isSet {
+			return nil, errors.New("Error parsing Mongo password (env var)")
+		}
+
+		// Build our list of hosts (currently set to 3)
+		mongoHost := []string{
+			parts.Host,
+			strings.ReplaceAll(parts.Host, "00-00", "00-01"),
+			strings.ReplaceAll(parts.Host, "00-00", "00-02"),
+		}
+
+		dialInfo := mgo.DialInfo{
+			Addrs:    mongoHost,
+			Timeout:  15 * time.Second,
+			Database: strings.ReplaceAll(parts.Path, "/", ""),
+			Username: parts.User.Username(),
+			Password: password,
+			Source:   "admin", // auth db
+		}
+		// Connect with TLS
+		tlsConfig := &tls.Config{}
+		dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
+			conn, err := tls.Dial("tcp", addr.String(), tlsConfig) // add TLS config
+			return conn, err
+		}
+		return mgo.DialWithInfo(&dialInfo)
+	} else {
+		return mgo.Dial(connection_uri)
 	}
+}
+
+func init() {
+	var err error
+	globalSession, err = makeMongoSession()
+
+	if err != nil {
+		fmt.Println("Dei erro ao iniciar a conexão", err)
+		panic(err)
+	}
+	fmt.Println("Conexão (mongo) iniciada com sucesso")
 
 	globalSession.SetMode(mgo.Monotonic, true)
-	log.Println("Mongo successfully configured.")
 }
