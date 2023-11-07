@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/url"
 	"os"
@@ -88,7 +89,9 @@ func init() {
 		fmt.Println("Dei erro ao iniciar a conexão", err)
 		panic(err)
 	}
-	fmt.Println("Conexão (mongo) iniciada com sucesso")
+	if stars_env := os.Getenv("stars_env"); stars_env != "test" {
+		log.Println("Conexão (mongo) iniciada com sucesso.")
+	}
 
 	globalSession.SetMode(mgo.Monotonic, true)
 }

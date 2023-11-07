@@ -38,5 +38,7 @@ func init() {
 		panic(err)
 	}
 
-	log.Println("Mysql successfully configured.")
+	if stars_env := os.Getenv("stars_env"); stars_env != "test" {
+		log.Println("Mysql (stars) successfully configured.")
+	}
 }
