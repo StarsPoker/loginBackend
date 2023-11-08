@@ -90,7 +90,7 @@ func (at *AccessToken) Generate() {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, at)
-	fmt.Println(string(jwtKey))
+
 	tokenString, err := token.SignedString(jwtKey)
 
 	if err != nil {
@@ -105,7 +105,6 @@ func (at *AccessToken) Generate() {
 func CheckToken(accessTokenId string) (*AccessToken, *rest_errors.RestErr) {
 	claims := &AccessToken{}
 
-	fmt.Println(string(jwtKey))
 	tkn, err := jwt.ParseWithClaims(accessTokenId, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
