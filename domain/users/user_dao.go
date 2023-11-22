@@ -250,7 +250,7 @@ func (user *User) Save() *rest_errors.RestErr {
 
 	if saveErr != nil {
 		logger.Error("error when trying to save user", saveErr)
-		return rest_errors.NewInternalServerError("database error")
+		return rest_errors.NewInternalServerError(saveErr.Error())
 	}
 
 	userId, err := insertResult.LastInsertId()
