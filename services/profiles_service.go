@@ -149,6 +149,8 @@ func (s *profilesService) UpdateParam(p profiles.Profile) (*profiles.Profile, *r
 		current.MakeAlertWithdrawal = p.MakeAlertWithdrawal
 	}else if p.FinishAtendance != nil {
 		current.FinishAtendance = p.FinishAtendance
+	}else if p.LinkReceipt != nil {
+		current.LinkReceipt = p.LinkReceipt
 	}
 
 	if err := current.UpdateParam(); err != nil {
