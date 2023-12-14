@@ -17,6 +17,7 @@ type Profile struct {
 	MakeBlockedWithdrawal 	*int64 		`json:"make_blocked_withdrawal"`
 	MakeAlertWithdrawal 	*int64 		`json:"make_alert_withdrawal"`
 	FinishAtendance		*int64 		`json:"finish_atendance"`
+	LinkReceipt 			*int64 		`json:"link_receipt"`
 }
 
 type Filter struct {
